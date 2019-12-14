@@ -18,8 +18,10 @@ public interface UserService {
 
     public String deleteUserByID(String uid);
 
-    public String listUsers();
+    public String updateUser(UserJSONEntity user);
 
     public String createUser(UserJSONEntity user);
+
+    public String listAllUsers();
     
 }

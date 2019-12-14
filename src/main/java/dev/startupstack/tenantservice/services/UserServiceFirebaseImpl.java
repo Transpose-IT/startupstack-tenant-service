@@ -25,6 +25,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.auth.UserRecord.CreateRequest;
+import com.google.firebase.auth.UserRecord.UpdateRequest;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -60,6 +61,7 @@ public class UserServiceFirebaseImpl implements UserService {
     }
 
     @Override
+    @JsonIgnoreProperties(value = { "password" })
     public String getUserByID(String uid) {
         try {
             UserRecord user = FirebaseAuth.getInstance().getUser(uid);
@@ -79,7 +81,8 @@ public class UserServiceFirebaseImpl implements UserService {
     }
 
     @Override
-    public String listUsers() {
+    @JsonIgnoreProperties(value = { "password" })
+    public String listAllUsers() {
         List<UserJSONEntity> userJSONList = new ArrayList<>();
 
         try {
@@ -104,22 +107,18 @@ public class UserServiceFirebaseImpl implements UserService {
     }
 
     @Override
-    @JsonIgnoreProperties(value = { "uid" })
     public String createUser(UserJSONEntity user) {
         CreateRequest request = new CreateRequest();
         request.setEmail(user.getEmail());
         request.setUid(UUID.randomUUID().toString());
         request.setPassword(user.getPassword());
-        
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("org", "testorg");
-        claims.put("role", "admin");
-
+    
         try {
             UserRecord createdUser = FirebaseAuth.getInstance().createUser(request);
-            FirebaseAuth.getInstance().setCustomUserClaims(createdUser.getUid(), claims);
+            FirebaseAuth.getInstance().setCustomUserClaims(createdUser.getUid(), user.getCustomClaims());
 
-            return this.mapper.writeValueAsString(new ResponseEntity("user created", 200, createdUser));
+            UserRecord responseObject = FirebaseAuth.getInstance().getUser(createdUser.getUid());
+            return this.mapper.writeValueAsString(new ResponseEntity("user created", 200, responseObject));
         } catch (FirebaseAuthException fbae) {
             fbae.printStackTrace();
             return fbae.toString();
@@ -140,6 +139,40 @@ public class UserServiceFirebaseImpl implements UserService {
             return jpe.toString();
         } 
         
+    }
+
+    @Override
+    public String updateUser(UserJSONEntity incomingJSON) {
+        UpdateRequest request = new UpdateRequest(incomingJSON.getUid());
+
+        if (incomingJSON.getEmail() != null) {
+            request.setEmail(incomingJSON.getEmail());
+        } 
+        if (incomingJSON.getPassword() != null) {
+            request.setPassword(incomingJSON.getPassword());
+        } 
+        if (incomingJSON.getRole() != null) {
+            try {
+                Map<String, Object> currentClaims = FirebaseAuth.getInstance().getUser(incomingJSON.getUid()).getCustomClaims();    
+                
+                Map<String, Object> modifiedClaims = new HashMap<>();
+                modifiedClaims.put("organization_id", currentClaims.get("organization_id"));
+                modifiedClaims.put("role", incomingJSON.getRole());
+        
+                request.setCustomClaims(modifiedClaims);
+            } catch(FirebaseAuthException fbae) {
+                return fbae.toString();
+            }
+        }
+        try {
+            UserRecord updatedUser = FirebaseAuth.getInstance().updateUser(request);
+            return this.mapper.writeValueAsString(new ResponseEntity("user updated", 200, updatedUser));
+        } catch (FirebaseAuthException fbae) {
+            fbae.printStackTrace();
+            return fbae.toString();
+        } catch (JsonProcessingException jpe) {
+            return jpe.toString();
+        } 
     }
 
     @PreDestroy

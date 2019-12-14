@@ -8,6 +8,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -25,9 +26,17 @@ public class Users {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/all")
+    @Path("/")
     public String allUsers() {
-        return userService.listUsers();
+        return userService.listAllUsers();
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/")
+    public String createUser( UserJSONEntity user) {
+        return userService.createUser(user);
     }
 
     @GET
@@ -37,19 +46,20 @@ public class Users {
         return userService.getUserByID(uid);
     }
 
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{uid}")
+    public String updateUser(@PathParam("uid") final String uid, UserJSONEntity user) {
+        user.setUid(uid);
+        return userService.updateUser(user);
+    }
+
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{uid}")
     public String deleteUser(@PathParam("uid") final String uid) {
         return userService.deleteUserByID(uid);
-    }
-
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/")
-    public String createUser(UserJSONEntity user) {
-        return userService.createUser(user);
     }
 }
 
