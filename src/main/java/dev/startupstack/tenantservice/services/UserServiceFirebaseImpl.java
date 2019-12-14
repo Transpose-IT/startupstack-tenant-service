@@ -14,6 +14,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.Dependent;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -27,6 +28,7 @@ import com.google.firebase.auth.UserRecord.CreateRequest;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+import dev.startupstack.tenantservice.entities.json.ResponseEntity;
 import dev.startupstack.tenantservice.entities.json.UserJSONEntity;
 
 /**
@@ -102,26 +104,22 @@ public class UserServiceFirebaseImpl implements UserService {
     }
 
     @Override
-    public String createUser() {
+    @JsonIgnoreProperties(value = { "uid" })
+    public String createUser(UserJSONEntity user) {
         CreateRequest request = new CreateRequest();
-        request.setEmail("test@transpose-it.nl");
+        request.setEmail(user.getEmail());
         request.setUid(UUID.randomUUID().toString());
-        request.setPassword("test123");
+        request.setPassword(user.getPassword());
         
         Map<String, Object> claims = new HashMap<>();
         claims.put("org", "testorg");
-        claims.put("level", "admin");
+        claims.put("role", "admin");
 
         try {
-            UserRecord user = FirebaseAuth.getInstance().createUser(request);
-            FirebaseAuth.getInstance().setCustomUserClaims(user.getUid(), claims);
+            UserRecord createdUser = FirebaseAuth.getInstance().createUser(request);
+            FirebaseAuth.getInstance().setCustomUserClaims(createdUser.getUid(), claims);
 
-            UserJSONEntity userEntity = new UserJSONEntity();
-            userEntity.setEmail(user.getEmail());
-            userEntity.setUid(user.getUid());
-            userEntity.setCustomClaims(FirebaseAuth.getInstance().getUser(user.getUid()).getCustomClaims());
-
-            return this.mapper.writeValueAsString(userEntity);
+            return this.mapper.writeValueAsString(new ResponseEntity("user created", 200, createdUser));
         } catch (FirebaseAuthException fbae) {
             fbae.printStackTrace();
             return fbae.toString();
@@ -130,8 +128,23 @@ public class UserServiceFirebaseImpl implements UserService {
         }
     }
 
+    @Override
+    public String deleteUserByID(String uid) {
+        try {
+            FirebaseAuth.getInstance().deleteUser(uid);
+            return this.mapper.writeValueAsString(new ResponseEntity("user deleted", 200, null));
+        } catch (FirebaseAuthException fbae) {
+            fbae.printStackTrace();
+            return fbae.toString();
+        } catch (JsonProcessingException jpe) {
+            return jpe.toString();
+        } 
+        
+    }
+
     @PreDestroy
     void predestroy() {
         FirebaseApp.getInstance().delete();
     }
+
 }

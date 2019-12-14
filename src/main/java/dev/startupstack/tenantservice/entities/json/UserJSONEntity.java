@@ -3,6 +3,8 @@ package dev.startupstack.tenantservice.entities.json;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * ListUsers
  */
@@ -10,6 +12,9 @@ public class UserJSONEntity {
 
     private String uid;
     private String email;
+
+    private String password;
+
     private Map<String, Object> customClaims = new HashMap<>();
 
     public UserJSONEntity() {
@@ -29,6 +34,16 @@ public class UserJSONEntity {
     public void setEmail(String email) {
         this.email = email;
     }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+
 
     public Map<String, Object> getCustomClaims() {
         return customClaims;
