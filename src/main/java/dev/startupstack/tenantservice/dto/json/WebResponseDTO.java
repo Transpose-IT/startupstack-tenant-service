@@ -1,32 +1,40 @@
-package dev.startupstack.tenantservice.entities.json;
+package dev.startupstack.tenantservice.dto.json;
 
+import java.util.LinkedList;
 
 /**
  * ResponseEntity
  */
-public class ResponseEntity {
+public class WebResponseDTO {
 
     private String message;
     private int statuscode;
     private Object responseObject;
 
-    public static final String MESSAGE_OK = "ok";
+    private LinkedList<String> messages = new LinkedList<>();
 
-    public ResponseEntity() {
+    public WebResponseDTO() {
 
     }
 
-    public ResponseEntity(String message, int statuscode) {
+    public WebResponseDTO(String message, int statuscode) {
         this.message = message;
         this.statuscode = statuscode;
     }
 
-    public ResponseEntity(String message, int statuscode, Object object) {
+    public WebResponseDTO(String message, int statuscode, Object object) {
         this.message = message;
         this.statuscode = statuscode;
         this.responseObject = object;
 
     }
+
+    public WebResponseDTO(LinkedList<String> messages, int statuscode) {
+        this.messages = messages;
+        this.statuscode = statuscode;
+    }
+    
+
     public String getMessage() {
         return message;
     }
@@ -45,5 +53,13 @@ public class ResponseEntity {
 
     public Object getResponseObject() {
         return responseObject;
+    }
+
+    public LinkedList<String> getMessages() {
+        return this.messages;
+    }
+
+    public void setMessages(LinkedList<String> messages) {
+        this.messages = messages;
     }
 }

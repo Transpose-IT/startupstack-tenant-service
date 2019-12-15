@@ -5,7 +5,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
-import dev.startupstack.tenantservice.entities.json.ResponseEntity;
+import dev.startupstack.tenantservice.dto.json.WebResponseDTO;
 
 @Provider
 public class ErrorMapper implements ExceptionMapper<Exception> {
@@ -17,7 +17,6 @@ public class ErrorMapper implements ExceptionMapper<Exception> {
             code = ((WebApplicationException) exception).getResponse().getStatus();
         }
 
-        return Response.status(code)
-                .entity(new ResponseEntity(exception.getMessage(), code)).build();
+        return Response.status(code).entity(new WebResponseDTO(exception.getMessage(), code)).build();
     }
 }

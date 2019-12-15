@@ -12,19 +12,23 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import dev.startupstack.tenantservice.entities.json.UserJSONEntity;
+import dev.startupstack.tenantservice.dto.DTOValidator;
+import dev.startupstack.tenantservice.dto.json.CreateUserDTO;
+import dev.startupstack.tenantservice.dto.json.UserDTO;
 import dev.startupstack.tenantservice.services.UserService;
 
 @ApplicationScoped
 @Path(API_URL_PREFIX + "/users")
-public class Users {
+public class UserResource {
 
     @Inject
     UserService userService;
+
+    @Inject
+    DTOValidator validator;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -37,14 +41,15 @@ public class Users {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/")
-    public Response createUser( UserJSONEntity user) {
+    public Response createUser(CreateUserDTO user) {
+        validator.validate(user);
         return userService.createUser(user);
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{uid}")
-    public Response getUser(@PathParam("uid") final String uid) throws WebApplicationException {
+    public Response getUser(@PathParam("uid") final String uid) {
         return userService.getUserByID(uid);
     }
 
@@ -52,7 +57,7 @@ public class Users {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{uid}")
-    public Response updateUser(@PathParam("uid") final String uid, UserJSONEntity user) {
+    public Response updateUser(@PathParam("uid") final String uid, UserDTO user) {
         user.setUid(uid);
         return userService.updateUser(user);
     }

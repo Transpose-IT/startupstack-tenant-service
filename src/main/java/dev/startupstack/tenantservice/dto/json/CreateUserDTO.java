@@ -1,30 +1,37 @@
-package dev.startupstack.tenantservice.entities.json;
+package dev.startupstack.tenantservice.dto.json;
+
+import static dev.startupstack.tenantservice.Constants.CLAIM_NAME_ORGANIZATION_ID;
+import static dev.startupstack.tenantservice.Constants.CLAIM_NAME_ROLE;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.validation.constraints.*;
+
+
 /**
  * ListUsers
  */
-public class UserJSONEntity {
+public class CreateUserDTO {
 
     private String uid;
-    private String email;
-    private String password;
-    private String provider;
 
-    @SuppressWarnings("unused")
+    @NotBlank(message="email may not be empty")
+    @Email
+    private String email;
+
+    @NotBlank(message="password may not be empty")
+    private String password;
+
+    @NotBlank(message="organization may not be empty")
     private String organizationID;
 
-    @SuppressWarnings("unused")
+    @NotBlank(message="role may not be empty")
     private String role;
-
-    public static final String CLAIM_NAME_ORGANIZATION_ID = "organization_id";
-    public static final String CLAIM_NAME_ROLE = "role";
 
     private Map<String, Object> customClaims = new HashMap<>();
 
-    public UserJSONEntity() {
+    public CreateUserDTO() {
 
     }
 
@@ -68,14 +75,6 @@ public class UserJSONEntity {
     public void setRole(String role) {
         this.role = role;
         this.customClaims.put(CLAIM_NAME_ROLE, role);
-    }
-
-    public String getProvider() {
-        return this.provider;
-    }
-
-    public void setProvider(String provider) {
-        this.provider = provider;
     }
 
     public Map<String, Object> getCustomClaims() {
