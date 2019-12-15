@@ -12,7 +12,9 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import dev.startupstack.tenantservice.entities.json.UserJSONEntity;
 import dev.startupstack.tenantservice.services.UserService;
@@ -27,7 +29,7 @@ public class Users {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/")
-    public String allUsers() {
+    public Response allUsers() {
         return userService.listAllUsers();
     }
 
@@ -35,14 +37,14 @@ public class Users {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/")
-    public String createUser( UserJSONEntity user) {
+    public Response createUser( UserJSONEntity user) {
         return userService.createUser(user);
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{uid}")
-    public String getUser(@PathParam("uid") final String uid) {
+    public Response getUser(@PathParam("uid") final String uid) throws WebApplicationException {
         return userService.getUserByID(uid);
     }
 
@@ -50,7 +52,7 @@ public class Users {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{uid}")
-    public String updateUser(@PathParam("uid") final String uid, UserJSONEntity user) {
+    public Response updateUser(@PathParam("uid") final String uid, UserJSONEntity user) {
         user.setUid(uid);
         return userService.updateUser(user);
     }
@@ -58,7 +60,7 @@ public class Users {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{uid}")
-    public String deleteUser(@PathParam("uid") final String uid) {
+    public Response deleteUser(@PathParam("uid") final String uid) {
         return userService.deleteUserByID(uid);
     }
 }

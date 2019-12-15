@@ -1,6 +1,8 @@
 package dev.startupstack.tenantservice.services;
 
 import javax.enterprise.context.Dependent;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 
 import dev.startupstack.tenantservice.entities.json.UserJSONEntity;
 
@@ -14,14 +16,14 @@ import dev.startupstack.tenantservice.entities.json.UserJSONEntity;
 @Dependent
 public interface UserService {
 
-    public String getUserByID(String uid);
+    public Response getUserByID(String uid) throws WebApplicationException;
 
-    public String deleteUserByID(String uid);
+    public Response deleteUserByID(String uid);
 
-    public String updateUser(UserJSONEntity user);
+    public Response updateUser(UserJSONEntity user);
 
-    public String createUser(UserJSONEntity user);
+    public Response createUser(UserJSONEntity user);
 
-    public String listAllUsers();
+    public Response listAllUsers();
     
 }

@@ -16,6 +16,11 @@ public class ResponseEntity {
 
     }
 
+    public ResponseEntity(String message, int statuscode) {
+        this.message = message;
+        this.statuscode = statuscode;
+    }
+
     public ResponseEntity(String message, int statuscode, Object object) {
         this.message = message;
         this.statuscode = statuscode;

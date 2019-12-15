@@ -1,7 +1,9 @@
 package dev.startupstack.tenantservice.services;
 
+import static dev.startupstack.tenantservice.entities.json.UserJSONEntity.CLAIM_NAME_ORGANIZATION_ID;
+import static dev.startupstack.tenantservice.entities.json.UserJSONEntity.CLAIM_NAME_ROLE;
+
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,8 +15,10 @@ import java.util.UUID;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.Dependent;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -28,6 +32,7 @@ import com.google.firebase.auth.UserRecord.CreateRequest;
 import com.google.firebase.auth.UserRecord.UpdateRequest;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
 
 import dev.startupstack.tenantservice.entities.json.ResponseEntity;
 import dev.startupstack.tenantservice.entities.json.UserJSONEntity;
@@ -35,8 +40,10 @@ import dev.startupstack.tenantservice.entities.json.UserJSONEntity;
 /**
  * UserServiceFirebaseImpl
  */
+
 @Dependent
 public class UserServiceFirebaseImpl implements UserService {
+    private static final Logger LOG = Logger.getLogger(UserServiceFirebaseImpl.class);
 
     // ConfigProperty values are not injected on construction time, don't use them
     // in a constructor
@@ -44,6 +51,7 @@ public class UserServiceFirebaseImpl implements UserService {
     public String serviceAccountFile;
 
     private ObjectMapper mapper = new ObjectMapper();
+
 
     @PostConstruct
     void postConstruct() {
@@ -53,131 +61,136 @@ public class UserServiceFirebaseImpl implements UserService {
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount)).build();
 
             FirebaseApp.initializeApp(options);
-        } catch (FileNotFoundException fnfe) {
-            System.out.println("Unable to find service account file: " + fnfe);
-        } catch (IOException ioe) {
-            System.out.println("Got IOException: " + ioe);
+        } catch (IOException exception) {
+            LOG.error(exception.getMessage(), exception);
+            throw new WebApplicationException(exception.getMessage());
         }
     }
 
     @Override
-    @JsonIgnoreProperties(value = { "password" })
-    public String getUserByID(String uid) {
+    public Response getUserByID(String uid) throws WebApplicationException {
         try {
             UserRecord user = FirebaseAuth.getInstance().getUser(uid);
             UserJSONEntity userEntity = new UserJSONEntity();
 
             userEntity.setUid(user.getUid());
             userEntity.setCustomClaims(user.getCustomClaims());
+            userEntity.setProvider(user.getProviderId());
 
-            return this.mapper.writeValueAsString(userEntity);
+            return Response.ok().entity(this.mapper.writeValueAsString(userEntity)).build();
 
         } catch (FirebaseAuthException fbae) {
-            fbae.printStackTrace();
-            return fbae.toString();
+            if (fbae.getErrorCode() == "user-not-found") {
+                throw new WebApplicationException(fbae.getMessage(), Status.NOT_FOUND);
+            } else {
+                LOG.error(fbae.getMessage(), fbae);
+                throw new WebApplicationException(fbae.getMessage());
+            }
         } catch (JsonProcessingException jpe) {
-            return jpe.toString();
+            return Response.status(500).entity(jpe).build();
         }
     }
 
     @Override
-    @JsonIgnoreProperties(value = { "password" })
-    public String listAllUsers() {
+    public Response listAllUsers() {
         List<UserJSONEntity> userJSONList = new ArrayList<>();
 
         try {
-            for (Iterator<ExportedUserRecord> iterator = FirebaseAuth.getInstance().listUsers(null).getValues().iterator(); iterator.hasNext();) {
+            for (Iterator<ExportedUserRecord> iterator = FirebaseAuth.getInstance().listUsers(null).getValues()
+                    .iterator(); iterator.hasNext();) {
                 ExportedUserRecord user = iterator.next();
                 UserJSONEntity userEntity = new UserJSONEntity();
 
                 userEntity.setEmail(user.getEmail());
                 userEntity.setUid(user.getUid());
                 userEntity.setCustomClaims(user.getCustomClaims());
+                userEntity.setProvider(user.getProviderId());
 
                 userJSONList.add(userEntity);
             }
-            return this.mapper.writeValueAsString(userJSONList);
+            return Response.ok().entity(this.mapper.writeValueAsString(userJSONList)).build();
 
-        } catch (FirebaseAuthException fbae) {
-            // TODO: Better error handling
-            return fbae.toString();
-        } catch (JsonProcessingException jpe) {
-            return jpe.toString();
+        } catch (FirebaseAuthException | JsonProcessingException exception) {
+            LOG.error(exception.getMessage(), exception);
+            throw new WebApplicationException(exception.getMessage());
         }
     }
 
     @Override
-    public String createUser(UserJSONEntity user) {
+    public Response createUser(UserJSONEntity user) {
         CreateRequest request = new CreateRequest();
         request.setEmail(user.getEmail());
         request.setUid(UUID.randomUUID().toString());
         request.setPassword(user.getPassword());
-    
+
         try {
             UserRecord createdUser = FirebaseAuth.getInstance().createUser(request);
             FirebaseAuth.getInstance().setCustomUserClaims(createdUser.getUid(), user.getCustomClaims());
 
             UserRecord responseObject = FirebaseAuth.getInstance().getUser(createdUser.getUid());
-            return this.mapper.writeValueAsString(new ResponseEntity("user created", 200, responseObject));
-        } catch (FirebaseAuthException fbae) {
-            fbae.printStackTrace();
-            return fbae.toString();
-        } catch (JsonProcessingException jpe) {
-            return jpe.toString();
+            return Response.status(Status.CREATED)
+                    .entity(this.mapper.writeValueAsString(
+                            new ResponseEntity("user created", Status.CREATED.getStatusCode(), responseObject)))
+                    .build();
+        } catch (FirebaseAuthException | JsonProcessingException exception) {
+            LOG.error(exception.getMessage(), exception);
+            throw new WebApplicationException(exception.getMessage());
         }
     }
 
     @Override
-    public String deleteUserByID(String uid) {
+    public Response deleteUserByID(String uid) {
         try {
             FirebaseAuth.getInstance().deleteUser(uid);
-            return this.mapper.writeValueAsString(new ResponseEntity("user deleted", 200, null));
-        } catch (FirebaseAuthException fbae) {
-            fbae.printStackTrace();
-            return fbae.toString();
-        } catch (JsonProcessingException jpe) {
-            return jpe.toString();
-        } 
-        
+            return Response.status(Status.NO_CONTENT)
+                    .entity(this.mapper
+                            .writeValueAsString(new ResponseEntity("user deleted", Status.NO_CONTENT.getStatusCode())))
+                    .build();
+        } catch (FirebaseAuthException | JsonProcessingException exception) {
+            LOG.error(exception.getMessage(), exception);
+            throw new WebApplicationException(exception.getMessage());
+        }
     }
 
     @Override
-    public String updateUser(UserJSONEntity incomingJSON) {
+    public Response updateUser(UserJSONEntity incomingJSON) {
         UpdateRequest request = new UpdateRequest(incomingJSON.getUid());
 
         if (incomingJSON.getEmail() != null) {
             request.setEmail(incomingJSON.getEmail());
-        } 
+        }
         if (incomingJSON.getPassword() != null) {
             request.setPassword(incomingJSON.getPassword());
-        } 
+        }
         if (incomingJSON.getRole() != null) {
             try {
-                Map<String, Object> currentClaims = FirebaseAuth.getInstance().getUser(incomingJSON.getUid()).getCustomClaims();    
-                
+                Map<String, Object> currentClaims = FirebaseAuth.getInstance().getUser(incomingJSON.getUid())
+                        .getCustomClaims();
+
                 Map<String, Object> modifiedClaims = new HashMap<>();
-                modifiedClaims.put("organization_id", currentClaims.get("organization_id"));
-                modifiedClaims.put("role", incomingJSON.getRole());
-        
+                modifiedClaims.put(CLAIM_NAME_ORGANIZATION_ID, currentClaims.get(CLAIM_NAME_ORGANIZATION_ID));
+                modifiedClaims.put(CLAIM_NAME_ROLE, incomingJSON.getRole());
+
                 request.setCustomClaims(modifiedClaims);
-            } catch(FirebaseAuthException fbae) {
-                return fbae.toString();
+            } catch (FirebaseAuthException exception) {
+                LOG.error(exception.getMessage(), exception);
+                throw new WebApplicationException(exception.getMessage());
             }
         }
         try {
             UserRecord updatedUser = FirebaseAuth.getInstance().updateUser(request);
-            return this.mapper.writeValueAsString(new ResponseEntity("user updated", 200, updatedUser));
-        } catch (FirebaseAuthException fbae) {
-            fbae.printStackTrace();
-            return fbae.toString();
-        } catch (JsonProcessingException jpe) {
-            return jpe.toString();
-        } 
+            return Response.status(Status.NO_CONTENT)
+                    .entity(this.mapper.writeValueAsString(
+                            new ResponseEntity("user updated", Status.NO_CONTENT.getStatusCode(), updatedUser)))
+                    .build();
+        } catch (FirebaseAuthException | JsonProcessingException exception) {
+            LOG.error(exception.getMessage(), exception);
+            throw new WebApplicationException(exception.getMessage());
+        }
     }
 
     @PreDestroy
     void predestroy() {
         FirebaseApp.getInstance().delete();
     }
-
 }
