@@ -9,9 +9,10 @@ import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import dev.startupstack.tenantservice.dto.json.CreateUserDTO;
+import dev.startupstack.tenantservice.dto.json.WebResponseDTO;
 
 @Dependent
 public class DTOValidator {
@@ -19,17 +20,18 @@ public class DTOValidator {
     @Inject
     Validator validator;
 
-    // TODO: Make this more DRY
-    public void validate(CreateUserDTO dto) {
-        Set<ConstraintViolation<CreateUserDTO>> violations = validator.validate(dto);
+    public <T> void validate(T dto) {
+        Set<ConstraintViolation<T>> violations = validator.validate(dto);
 
         if (violations.isEmpty() == false) {
             LinkedList<String> messages = new LinkedList<>();
-            for(Iterator<ConstraintViolation<CreateUserDTO>> iterator = violations.iterator(); iterator.hasNext();) {
-                ConstraintViolation<?> constraint = iterator.next();
+            for (Iterator<ConstraintViolation<T>> iterator = violations.iterator(); iterator.hasNext();) {
+                ConstraintViolation<T> constraint = iterator.next();
                 messages.add(constraint.getMessage());
             }
-            throw new WebApplicationException(messages.toString(), Status.BAD_REQUEST.getStatusCode());
-        } 
+            int statusCode = Status.BAD_REQUEST.getStatusCode();
+            Response response = Response.status(statusCode).entity(new WebResponseDTO(messages, statusCode)).build();
+            throw new WebApplicationException(response);
+        }
     }
 }

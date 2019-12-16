@@ -7,42 +7,32 @@ import java.util.LinkedList;
  */
 public class WebResponseDTO {
 
-    private String message;
     private int statuscode;
     private Object responseObject;
 
-    private LinkedList<String> messages = new LinkedList<>();
+    private LinkedList<String> response = new LinkedList<>();
 
     public WebResponseDTO() {
 
     }
 
     public WebResponseDTO(String message, int statuscode) {
-        this.message = message;
+        this.response.add(message);
         this.statuscode = statuscode;
     }
 
     public WebResponseDTO(String message, int statuscode, Object object) {
-        this.message = message;
+        this.response.add(message);
         this.statuscode = statuscode;
         this.responseObject = object;
 
     }
 
     public WebResponseDTO(LinkedList<String> messages, int statuscode) {
-        this.messages = messages;
+        this.response = messages;
         this.statuscode = statuscode;
     }
     
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String msg) {
-        this.message = msg;
-    }
-
     public int getStatusCode() {
         return statuscode;
     }
@@ -55,11 +45,11 @@ public class WebResponseDTO {
         return responseObject;
     }
 
-    public LinkedList<String> getMessages() {
-        return this.messages;
+    public LinkedList<String> getResponse() {
+        return this.response;
     }
 
-    public void setMessages(LinkedList<String> messages) {
-        this.messages = messages;
+    public void setResponse(LinkedList<String> messages) {
+        this.response = messages;
     }
 }

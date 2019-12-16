@@ -35,6 +35,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import dev.startupstack.tenantservice.dto.json.CreateUserDTO;
+import dev.startupstack.tenantservice.dto.json.UpdateUserDTO;
 import dev.startupstack.tenantservice.dto.json.UserDTO;
 import dev.startupstack.tenantservice.dto.json.WebResponseDTO;
 
@@ -83,7 +84,6 @@ public class UserServiceFirebaseImpl implements UserService {
             if (fbae.getErrorCode() == "user-not-found") {
                 throw new WebApplicationException(fbae.getMessage(), Status.NOT_FOUND);
             } else {
-                LOG.error(fbae.getMessage(), fbae);
                 throw new WebApplicationException(fbae.getMessage());
             }
         } catch (JsonProcessingException jpe) {
@@ -111,12 +111,12 @@ public class UserServiceFirebaseImpl implements UserService {
             return Response.ok().entity(this.mapper.writeValueAsString(userJSONList)).build();
 
         } catch (FirebaseAuthException | JsonProcessingException exception) {
-            LOG.error(exception.getMessage(), exception);
             throw new WebApplicationException(exception.getMessage());
         }
     }
 
     @Override
+    // TODO: Add check to check for existing email addresses
     public Response createUser(CreateUserDTO user) {
         CreateRequest request = new CreateRequest();
         request.setEmail(user.getEmail());
@@ -131,7 +131,6 @@ public class UserServiceFirebaseImpl implements UserService {
             return Response.status(Status.CREATED).entity(this.mapper.writeValueAsString(
                     new WebResponseDTO("user created", Status.CREATED.getStatusCode(), responseObject))).build();
         } catch (FirebaseAuthException | JsonProcessingException exception) {
-            LOG.error(exception.getMessage(), exception);
             throw new WebApplicationException(exception.getMessage());
         }
     }
@@ -145,13 +144,12 @@ public class UserServiceFirebaseImpl implements UserService {
                             .writeValueAsString(new WebResponseDTO("user deleted", Status.NO_CONTENT.getStatusCode())))
                     .build();
         } catch (FirebaseAuthException | JsonProcessingException exception) {
-            LOG.error(exception.getMessage(), exception);
             throw new WebApplicationException(exception.getMessage());
         }
     }
 
     @Override
-    public Response updateUser(UserDTO userDTO) {
+    public Response updateUser(UpdateUserDTO userDTO) {
         UpdateRequest request = new UpdateRequest(userDTO.getUid());
 
         if (userDTO.getEmail() != null) {
@@ -180,7 +178,6 @@ public class UserServiceFirebaseImpl implements UserService {
             return Response.status(Status.NO_CONTENT).entity(this.mapper.writeValueAsString(
                     new WebResponseDTO("user updated", Status.NO_CONTENT.getStatusCode(), updatedUser))).build();
         } catch (FirebaseAuthException | JsonProcessingException exception) {
-            LOG.error(exception.getMessage(), exception);
             throw new WebApplicationException(exception.getMessage());
         }
     }

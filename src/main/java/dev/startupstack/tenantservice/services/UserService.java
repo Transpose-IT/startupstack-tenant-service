@@ -4,7 +4,7 @@ import javax.enterprise.context.Dependent;
 import javax.ws.rs.core.Response;
 
 import dev.startupstack.tenantservice.dto.json.CreateUserDTO;
-import dev.startupstack.tenantservice.dto.json.UserDTO;
+import dev.startupstack.tenantservice.dto.json.UpdateUserDTO;
 
 /**
  * UserService
@@ -17,7 +17,7 @@ public interface UserService {
 
     public Response deleteUserByID(String uid);
 
-    public Response updateUser(UserDTO user);
+    public Response updateUser(UpdateUserDTO user);
 
     public Response createUser(CreateUserDTO user);
 

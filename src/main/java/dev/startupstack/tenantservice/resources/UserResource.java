@@ -17,7 +17,7 @@ import javax.ws.rs.core.Response;
 
 import dev.startupstack.tenantservice.dto.DTOValidator;
 import dev.startupstack.tenantservice.dto.json.CreateUserDTO;
-import dev.startupstack.tenantservice.dto.json.UserDTO;
+import dev.startupstack.tenantservice.dto.json.UpdateUserDTO;
 import dev.startupstack.tenantservice.services.UserService;
 
 @ApplicationScoped
@@ -57,8 +57,9 @@ public class UserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{uid}")
-    public Response updateUser(@PathParam("uid") final String uid, UserDTO user) {
+    public Response updateUser(@PathParam("uid") final String uid, UpdateUserDTO user) {
         user.setUid(uid);
+        validator.validate(user);
         return userService.updateUser(user);
     }
 
