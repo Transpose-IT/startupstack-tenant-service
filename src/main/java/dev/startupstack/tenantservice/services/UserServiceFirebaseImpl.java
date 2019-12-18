@@ -49,7 +49,7 @@ public class UserServiceFirebaseImpl implements UserService {
 
     // ConfigProperty values are not injected on construction time, don't use them
     // in a constructor
-    @ConfigProperty(name = "startupstack.tenantservice.services.userservice.firebase.keyfile")
+    @ConfigProperty(name = "startupstack.tenantservice.firebase.keyfile")
     public String serviceAccountFile;
 
     private ObjectMapper mapper = new ObjectMapper();
@@ -81,7 +81,7 @@ public class UserServiceFirebaseImpl implements UserService {
             return Response.ok().entity(this.mapper.writeValueAsString(userDTO)).build();
 
         } catch (FirebaseAuthException fbae) {
-            if (fbae.getErrorCode() == "user-not-found") {
+            if (fbae.getErrorCode().equals("user-not-found")) {
                 throw new WebApplicationException(fbae.getMessage(), Status.NOT_FOUND);
             } else {
                 throw new WebApplicationException(fbae.getMessage());
