@@ -1,4 +1,4 @@
-package dev.startupstack.tenantservice.models;
+package dev.startupstack.tenantservice.models.firebase;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * FirebaseRestLoginResponse
  */
-public class FirebaseLoginResponseModel {
+public class LoginResponse {
 
     private String localId;
     private String email;
