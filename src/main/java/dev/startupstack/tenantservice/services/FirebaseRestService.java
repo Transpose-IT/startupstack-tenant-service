@@ -1,6 +1,8 @@
 package dev.startupstack.tenantservice.services;
 
+import javax.annotation.PreDestroy;
 import javax.enterprise.context.Dependent;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
@@ -11,14 +13,16 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseToken;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
+import dev.startupstack.tenantservice.models.firebase.LoginModel;
 import dev.startupstack.tenantservice.models.firebase.LoginResponse;
 import dev.startupstack.tenantservice.models.firebase.TokenResponse;
-import dev.startupstack.tenantservice.models.firebase.LoginModel;
-import dev.startupstack.tenantservice.models.firebase.TokenModel;
+import dev.startupstack.tenantservice.services.external.FirebaseSDKService;
 
 /**
  * FirebaseRestService
@@ -34,14 +38,13 @@ public class FirebaseRestService {
 
     private Client client;
 
-    //private static final String BASE_URL = "https://identitytoolkit.googleapis.com/v1/";
-    private static final String BASE_URL = "https://securetoken.googleapis.com/v1/";
+    private static final String BASE_URL = "https://identitytoolkit.googleapis.com/v1/";
 
     FirebaseRestService() {
         this.client = ClientBuilder.newBuilder().build();
     }
 
-    LoginResponse login(LoginModel entity) {
+    LoginResponse login(@NotNull LoginModel entity) {
         Response response = this.doPost(Entity.json(entity), "/accounts:signInWithPassword");
         LOG.debug(response.readEntity(String.class));
         return response.readEntity(LoginResponse.class);
@@ -52,17 +55,20 @@ public class FirebaseRestService {
         return response.readEntity(TokenResponse.class);
     }
 
-
     private Response doPost(Entity<?> preparedEntity, String url) throws WebApplicationException {
         try {
             WebTarget target = client.target(BASE_URL + url + "?key=" + webApiKey);
             Response response = target.request().buildPost(preparedEntity).invoke();
             response.bufferEntity();
-            
             return response;
         } catch( IllegalStateException | ProcessingException exception) {
             LOG.error(exception.getMessage(), exception);
             throw new WebApplicationException(exception.getMessage());
         }
+    }
+
+    @PreDestroy
+    void predestroy() {
+        FirebaseApp.getInstance().delete();
     }
 }

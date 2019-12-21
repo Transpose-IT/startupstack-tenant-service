@@ -15,6 +15,7 @@ import java.util.UUID;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -38,6 +39,7 @@ import dev.startupstack.tenantservice.dto.json.CreateUserDTO;
 import dev.startupstack.tenantservice.dto.json.UpdateUserDTO;
 import dev.startupstack.tenantservice.dto.json.UserDTO;
 import dev.startupstack.tenantservice.dto.json.WebResponseDTO;
+import dev.startupstack.tenantservice.services.external.FirebaseSDKService;
 
 /**
  * UserServiceFirebaseImpl
@@ -46,26 +48,11 @@ import dev.startupstack.tenantservice.dto.json.WebResponseDTO;
 @Dependent
 public class UserServiceFirebaseImpl implements UserService {
     private static final Logger LOG = Logger.getLogger(UserServiceFirebaseImpl.class);
-
-    // ConfigProperty values are not injected on construction time, don't use them
-    // in a constructor
-    @ConfigProperty(name = "startupstack.tenantservice.firebase.keyfile")
-    public String serviceAccountFile;
-
     private ObjectMapper mapper = new ObjectMapper();
 
     @PostConstruct
     void postConstruct() {
-        try {
-            FileInputStream serviceAccount = new FileInputStream(serviceAccountFile);
-            FirebaseOptions options = new FirebaseOptions.Builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount)).build();
-
-            FirebaseApp.initializeApp(options);
-        } catch (IOException exception) {
-            LOG.error(exception.getMessage(), exception);
-            throw new WebApplicationException(exception.getMessage());
-        }
+        FirebaseSDKService.initialize();
     }
 
     @Override

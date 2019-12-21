@@ -15,5 +15,7 @@ public interface SessionService {
     public Response login(LoginModel login);
  
     public Response exchangeToken(Form tokenModel);
+
+    public Response validateToken(String token);
     
 }

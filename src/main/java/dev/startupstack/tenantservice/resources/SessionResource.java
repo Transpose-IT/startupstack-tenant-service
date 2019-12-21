@@ -51,10 +51,18 @@ public class SessionResource {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/token")
-    public Response validateToken(@FormParam("token") String token) {
+    public Response exchangeToken(@FormParam("token") String token) {
         return sessionService.exchangeToken(new Form().param("grant_type", "refresh_token").param("refresh_token", token));
     }
 
+
+    @POST
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/token/validate")
+    public Response validateToken(@FormParam("token") String token) {
+        return sessionService.validateToken(token);
+    }
     // @POST
     // @Consumes(MediaType.APPLICATION_JSON)
     // @Produces(MediaType.APPLICATION_JSON)

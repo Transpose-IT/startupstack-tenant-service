@@ -1,5 +1,6 @@
 package dev.startupstack.tenantservice.services;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.ws.rs.ProcessingException;
@@ -7,12 +8,16 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.Response;
 
+import com.google.firebase.auth.FirebaseToken;
+
 import org.jboss.logging.Logger;
 
 import dev.startupstack.tenantservice.models.firebase.LoginModel;
 import dev.startupstack.tenantservice.models.firebase.LoginResponse;
 import dev.startupstack.tenantservice.models.firebase.TokenResponse;
+import dev.startupstack.tenantservice.services.external.FirebaseSDKService;
 
+import static dev.startupstack.tenantservice.Constants.CLAIM_NAME_ORGANIZATION_ID;
 /**
  * SessionServiceFirebaseImpl
  */
@@ -21,6 +26,11 @@ public class SessionServiceFirebaseImpl implements SessionService {
 
     private static final Logger LOG = Logger.getLogger(SessionServiceFirebaseImpl.class);
 
+    @PostConstruct
+    void postConstruct() {
+        FirebaseSDKService.initialize();
+    }
+    
     @Inject
     FirebaseRestService firebaseRestService;
 
@@ -56,4 +66,15 @@ public class SessionServiceFirebaseImpl implements SessionService {
             throw new WebApplicationException(exception.getMessage());
         }
     }
+
+    @Override
+    public Response validateToken(String token) throws WebApplicationException {
+        FirebaseToken firebaseToken = FirebaseSDKService.verifyToken(token);
+        
+        String organization = firebaseToken.getClaims().get(CLAIM_NAME_ORGANIZATION_ID).toString();
+        System.out.println(organization);
+        return Response.ok().build();
+    }
+
+    
 }
