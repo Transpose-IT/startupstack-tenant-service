@@ -1,6 +1,6 @@
-package dev.startupstack.tenantservice.dto.json;
+package dev.startupstack.tenantservice.models;
 
-import static dev.startupstack.tenantservice.Constants.CLAIM_NAME_ORGANIZATION_ID;
+import static dev.startupstack.tenantservice.Constants.CLAIM_NAME_TENANT_ID;
 import static dev.startupstack.tenantservice.Constants.CLAIM_NAME_ROLE;
 
 import java.util.HashMap;
@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * ListUsers
  */
-public class UserDTO {
+public class UserModel {
 
     private String uid;
     private String email;
@@ -24,7 +24,7 @@ public class UserDTO {
 
     private Map<String, Object> customClaims = new HashMap<>();
 
-    public UserDTO() {
+    public UserModel() {
 
     }
 
@@ -53,12 +53,12 @@ public class UserDTO {
     }
 
     public String getOrganizationID() {
-        return this.customClaims.get(CLAIM_NAME_ORGANIZATION_ID).toString();
+        return this.customClaims.get(CLAIM_NAME_TENANT_ID).toString();
     }
 
     public void setOrganizationID(String orgid) {
         this.organizationID = orgid;
-        this.customClaims.put(CLAIM_NAME_ORGANIZATION_ID, orgid);
+        this.customClaims.put(CLAIM_NAME_TENANT_ID, orgid);
     }
 
     public String getRole() {

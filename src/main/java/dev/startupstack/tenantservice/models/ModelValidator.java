@@ -1,4 +1,4 @@
-package dev.startupstack.tenantservice.dto;
+package dev.startupstack.tenantservice.models;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -12,10 +12,10 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import dev.startupstack.tenantservice.dto.json.WebResponseDTO;
+import dev.startupstack.tenantservice.models.WebResponseModel;
 
 @Dependent
-public class DTOValidator {
+public class ModelValidator {
 
     @Inject
     Validator validator;
@@ -30,7 +30,7 @@ public class DTOValidator {
                 messages.add(constraint.getMessage());
             }
             int statusCode = Status.BAD_REQUEST.getStatusCode();
-            Response response = Response.status(statusCode).entity(new WebResponseDTO(messages, statusCode)).build();
+            Response response = Response.status(statusCode).entity(new WebResponseModel(messages, statusCode)).build();
             throw new WebApplicationException(response);
         }
     }

@@ -1,4 +1,4 @@
-package dev.startupstack.tenantservice.dto.json;
+package dev.startupstack.tenantservice.models;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
@@ -7,7 +7,7 @@ import javax.validation.constraints.Size;
 /**
  * LoginDTO
  */
-public class LoginDTO {
+public class LoginModel {
 
     @NotBlank(message="email may not be empty")
     @Email
@@ -17,10 +17,24 @@ public class LoginDTO {
     @Size(min = 8, message="password must be at least 8 characters")
     private String password;
 
-    public LoginDTO() {
+    private Boolean returnSecureToken = true;
+
+    public LoginModel() {
 
     }
 
+
+    public Boolean isReturnSecureToken() {
+        return this.returnSecureToken;
+    }
+
+    public Boolean getReturnSecureToken() {
+        return this.returnSecureToken;
+    }
+
+    public void setReturnSecureToken(Boolean returnSecureToken) {
+        this.returnSecureToken = returnSecureToken;
+    }
 
     public String getEmail() {
         return this.email;
