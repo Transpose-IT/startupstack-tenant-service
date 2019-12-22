@@ -1,8 +1,6 @@
 package dev.startupstack.tenantservice.services;
 
-import javax.annotation.PreDestroy;
 import javax.enterprise.context.Dependent;
-import javax.validation.constraints.NotNull;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
@@ -13,16 +11,12 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.auth.FirebaseToken;
-
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
-import dev.startupstack.tenantservice.models.firebase.LoginModel;
+import dev.startupstack.tenantservice.models.LoginModel;
 import dev.startupstack.tenantservice.models.firebase.LoginResponse;
 import dev.startupstack.tenantservice.models.firebase.TokenResponse;
-import dev.startupstack.tenantservice.services.external.FirebaseSDKService;
 
 /**
  * FirebaseRestService
@@ -44,7 +38,7 @@ public class FirebaseRestService {
         this.client = ClientBuilder.newBuilder().build();
     }
 
-    LoginResponse login(@NotNull LoginModel entity) {
+    LoginResponse login(LoginModel entity) {
         Response response = this.doPost(Entity.json(entity), "/accounts:signInWithPassword");
         LOG.debug(response.readEntity(String.class));
         return response.readEntity(LoginResponse.class);
@@ -65,10 +59,5 @@ public class FirebaseRestService {
             LOG.error(exception.getMessage(), exception);
             throw new WebApplicationException(exception.getMessage());
         }
-    }
-
-    @PreDestroy
-    void predestroy() {
-        FirebaseApp.getInstance().delete();
     }
 }
