@@ -4,6 +4,7 @@ import static dev.startupstack.tenantservice.Constants.API_URL_PREFIX;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.validation.constraints.NotBlank;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -15,9 +16,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import dev.startupstack.tenantservice.dto.DTOValidator;
-import dev.startupstack.tenantservice.dto.json.CreateUserDTO;
-import dev.startupstack.tenantservice.dto.json.UpdateUserDTO;
+import dev.startupstack.tenantservice.models.CreateUserModel;
+import dev.startupstack.tenantservice.models.ModelValidator;
+import dev.startupstack.tenantservice.models.UpdateUserModel;
 import dev.startupstack.tenantservice.services.UserService;
 
 @ApplicationScoped
@@ -28,7 +29,7 @@ public class UserResource {
     UserService userService;
 
     @Inject
-    DTOValidator validator;
+    ModelValidator validator;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -41,7 +42,7 @@ public class UserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/")
-    public Response createUser(CreateUserDTO user) {
+    public Response createUser(CreateUserModel user) {
         validator.validate(user);
         return userService.createUser(user);
     }
@@ -49,7 +50,7 @@ public class UserResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{uid}")
-    public Response getUser(@PathParam("uid") final String uid) {
+    public Response getUser(@NotBlank @PathParam("uid") final String uid) {
         return userService.getUserByID(uid);
     }
 
@@ -57,7 +58,7 @@ public class UserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{uid}")
-    public Response updateUser(@PathParam("uid") final String uid, UpdateUserDTO user) {
+    public Response updateUser(@NotBlank @PathParam("uid") final String uid, UpdateUserModel user) {
         user.setUid(uid);
         validator.validate(user);
         return userService.updateUser(user);
@@ -66,7 +67,7 @@ public class UserResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{uid}")
-    public Response deleteUser(@PathParam("uid") final String uid) {
+    public Response deleteUser(@NotBlank @PathParam("uid") final String uid) {
         return userService.deleteUserByID(uid);
     }
 }

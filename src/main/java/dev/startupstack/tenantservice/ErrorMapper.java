@@ -7,7 +7,7 @@ import javax.ws.rs.ext.Provider;
 
 import org.jboss.logging.Logger;
 
-import dev.startupstack.tenantservice.dto.json.WebResponseDTO;
+import dev.startupstack.tenantservice.models.WebResponseModel;
 
 @Provider
 public class ErrorMapper implements ExceptionMapper<Exception> {
@@ -20,6 +20,6 @@ public class ErrorMapper implements ExceptionMapper<Exception> {
             code = ((WebApplicationException) exception).getResponse().getStatus();
         }
         LOG.error(exception.getMessage(), exception);
-        return Response.status(code).entity(new WebResponseDTO(exception.getMessage(), code)).build();
+        return Response.status(code).entity(new WebResponseModel(exception.getMessage(), code)).build();
     }
 }
