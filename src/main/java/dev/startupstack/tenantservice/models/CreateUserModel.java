@@ -21,13 +21,14 @@ public class CreateUserModel {
     @Size(min = 8, message="password must be at least 8 characters")
     private String password;
 
-    @NotBlank(message="organization may not be empty")
-    private String organizationID;
+    @NotBlank(message="tenant may not be empty")
+    private String tenantID;
 
     @NotBlank(message="role may not be empty")
     private String role;
 
     private Map<String, Object> customClaims = new HashMap<>();
+
 
     public CreateUserModel() {
 
@@ -49,12 +50,12 @@ public class CreateUserModel {
         this.password = password;
     }
 
-    public String getOrganizationID() {
+    public String getTenantID() {
         return this.customClaims.get(CLAIM_NAME_TENANT_ID).toString();
     }
 
-    public void setOrganizationID(String orgid) {
-        this.organizationID = orgid;
+    public void setTenantID(String orgid) {
+        this.tenantID = orgid;
         this.customClaims.put(CLAIM_NAME_TENANT_ID, orgid);
     }
 

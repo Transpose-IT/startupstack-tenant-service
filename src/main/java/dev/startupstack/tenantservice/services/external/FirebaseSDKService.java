@@ -32,21 +32,21 @@ public class FirebaseSDKService {
     @ConfigProperty(name = "startupstack.tenantservice.firebase.keyfile")
     String serviceAccountFile;
 
-    public Optional<String> verifyToken(String accessToken) throws WebApplicationException {
-        Optional<String> result = Optional.empty();
+    public Optional<FirebaseAuthException> verifyToken(String accessToken) throws WebApplicationException {
+        Optional<FirebaseAuthException> result = Optional.empty();
         try {
             FirebaseAuth.getInstance().verifyIdToken(accessToken);
             return result;
         } catch (FirebaseAuthException fae) {
-            result = Optional.of("Token validation failed: " + fae.getMessage());
-            LOG.warn(result.get());
+            result = Optional.of(fae);
+            LOG.warn("Token validation failed: " + fae.getMessage());
             return result;
         } catch (IllegalArgumentException iae) {
             throw new WebApplicationException(iae.getMessage(), iae);
         }
     }
 
-    public FirebaseToken getDecryptedToken(String accessToken) {
+    public FirebaseToken getDecryptedToken(String accessToken) throws WebApplicationException {
         try {
             return FirebaseAuth.getInstance().verifyIdToken(accessToken, true);
         } catch (FirebaseAuthException fae) {
@@ -58,11 +58,11 @@ public class FirebaseSDKService {
     }
 
     
-    public void revokeTokens(String uid) throws WebApplicationException {
+    public void revokeTokens(String id) throws WebApplicationException {
         try {
-            LOG.infof("[%s] Revoking tokens ...", uid);
-            FirebaseAuth.getInstance().revokeRefreshTokens(uid);
-            LOG.infof("[%s] Revoke tokens OK", uid);
+            LOG.infof("[%s] Revoking tokens ...", id);
+            FirebaseAuth.getInstance().revokeRefreshTokens(id);
+            LOG.infof("[%s] Revoke tokens OK", id);
         } catch (IllegalArgumentException | FirebaseAuthException exception) {
             throw new WebApplicationException(exception.getMessage(), exception);
         }

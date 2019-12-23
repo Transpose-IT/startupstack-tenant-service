@@ -22,7 +22,7 @@ import dev.startupstack.tenantservice.models.UpdateUserModel;
 import dev.startupstack.tenantservice.services.UserService;
 
 @ApplicationScoped
-@Path(API_URL_PREFIX + "/users")
+@Path(API_URL_PREFIX + "/user")
 public class UserResource {
 
     @Inject
@@ -35,7 +35,7 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/")
     public Response allUsers() {
-        return userService.listAllUsers();
+        return userService.listUsers();
     }
 
     @POST
@@ -49,26 +49,26 @@ public class UserResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{uid}")
-    public Response getUser(@NotBlank @PathParam("uid") final String uid) {
-        return userService.getUserByID(uid);
+    @Path("/{id}")
+    public Response getUser(@NotBlank @PathParam("id") final String id) {
+        return userService.getUser(id);
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{uid}")
-    public Response updateUser(@NotBlank @PathParam("uid") final String uid, UpdateUserModel user) {
-        user.setUid(uid);
+    @Path("/{id}")
+    public Response updateUser(@NotBlank @PathParam("id") final String id, UpdateUserModel user) {
+        user.setid(id);
         validator.validate(user);
         return userService.updateUser(user);
     }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{uid}")
-    public Response deleteUser(@NotBlank @PathParam("uid") final String uid) {
-        return userService.deleteUserByID(uid);
+    @Path("/{id}")
+    public Response deleteUser(@NotBlank @PathParam("id") final String id) {
+        return userService.deleteUser(id);
     }
 }
 

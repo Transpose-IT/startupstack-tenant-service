@@ -43,8 +43,8 @@ public class SessionResource {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/logout")
-    public Response logout(@NotBlank @FormParam("access_token") String accessToken, @NotBlank @FormParam("uid") String uid) {
-        return sessionService.logout(accessToken, uid);
+    public Response logout(@NotBlank @FormParam("access_token") String accessToken, @NotBlank @FormParam("id") String id) {
+        return sessionService.logout(accessToken, id);
     }
 }
 

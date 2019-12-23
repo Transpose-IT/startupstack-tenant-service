@@ -12,7 +12,9 @@ import org.jboss.logging.Logger;
 import dev.startupstack.tenantservice.models.UserModel;
 import dev.startupstack.tenantservice.models.LoginModel;
 import dev.startupstack.tenantservice.models.firebase.LoginResponse;
+import dev.startupstack.tenantservice.services.external.FirebaseRestService;
 import dev.startupstack.tenantservice.services.external.FirebaseSDKService;
+
 /**
  * SessionServiceFirebaseImpl
  */
@@ -30,11 +32,16 @@ public class SessionServiceFirebaseImpl implements SessionService {
     @Inject
     TokenService tokenService;
 
+    @Inject
+    EntityService entityService;
+
     @Override
     public Response login(LoginModel login) throws WebApplicationException {
         try {
             LoginResponse restResponse = firebaseRestService.login(login);
+
             if (restResponse.getError().isEmpty()) {
+                entityService.updateRefreshToken(restResponse.getLocalId(), restResponse.getRefreshToken());
                 return Response.ok().entity(restResponse).build();
             } else {
                 int code = (int) restResponse.getError().get("code");
@@ -48,16 +55,13 @@ public class SessionServiceFirebaseImpl implements SessionService {
     }
 
     @Override
-    public Response logout(String accessToken, String uid) {
+    public Response logout(String accessToken, String id) {
         UserModel userInfo = tokenService.getDecryptedToken(accessToken);
-        if (userInfo.getUid().equals(uid)) {
-            tokenService.revokeTokens(uid);
+        if (userInfo.getid().equals(id)) {
+            tokenService.revokeTokens(id);
             return Response.noContent().build();
         } else {
             return Response.status(Status.BAD_REQUEST.getStatusCode()).build();
         }
     }
-
-
-    
 }

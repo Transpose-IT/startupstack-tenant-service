@@ -40,14 +40,14 @@ public class TokenResource {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/validate")
-    public Response validateToken(@FormParam("access_token") String accessToken) {
-        return tokenService.validateToken(accessToken);
+    public Response validateToken(@FormParam("access_token") String accessToken, @FormParam("id") String id) {
+        return tokenService.validateToken(accessToken, id);
     }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{uid}")
-    public Response revokeTokens(@PathParam("uid") final String uid) {
-        return tokenService.revokeTokens(uid);
+    @Path("/{id}")
+    public Response revokeTokens(@PathParam("id") final String id) {
+        return tokenService.revokeTokens(id);
     }
 }

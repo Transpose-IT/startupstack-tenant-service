@@ -14,9 +14,9 @@ public interface TokenService {
 
     public Response exchangeToken(Form tokenModel);
 
-    public Response validateToken(String accessToken);
+    public Response validateToken(String accessToken, String id);
 
-    public Response revokeTokens(String uid);
+    public Response revokeTokens(String id);
 
     UserModel getDecryptedToken(String accessToken);
 }

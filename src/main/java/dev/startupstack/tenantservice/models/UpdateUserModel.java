@@ -12,8 +12,8 @@ import javax.validation.constraints.*;
  */
 public class UpdateUserModel {
 
-    @NotBlank(message="uid may not be empty")
-    private String uid;
+    @NotBlank(message="id may not be empty")
+    private String id;
 
     @NotBlank(message="email may not be empty")
     @Email
@@ -30,12 +30,12 @@ public class UpdateUserModel {
 
     }
 
-    public String getUid() {
-        return uid;
+    public String getid() {
+        return id;
     }
 
-    public void setUid(String uid) {
-        this.uid = uid;
+    public void setid(String id) {
+        this.id = id;
     }
 
     public String getEmail() {

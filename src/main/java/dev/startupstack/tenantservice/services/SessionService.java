@@ -13,6 +13,6 @@ public interface SessionService {
 
     public Response login(LoginModel login);
 
-    public Response logout(String accessToken, String uid);
+    public Response logout(String accessToken, String id);
      
 }

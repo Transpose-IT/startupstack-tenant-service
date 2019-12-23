@@ -13,14 +13,14 @@ import dev.startupstack.tenantservice.models.UpdateUserModel;
 @Dependent
 public interface UserService {
 
-    public Response getUserByID(String uid);
+    public Response getUser(String id);
 
-    public Response deleteUserByID(String uid);
+    public Response deleteUser(String id);
 
     public Response updateUser(UpdateUserModel user);
 
     public Response createUser(CreateUserModel user);
 
-    public Response listAllUsers();
+    public Response listUsers();
 
 }

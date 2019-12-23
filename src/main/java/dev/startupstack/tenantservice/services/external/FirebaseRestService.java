@@ -1,4 +1,4 @@
-package dev.startupstack.tenantservice.services;
+package dev.startupstack.tenantservice.services.external;
 
 import javax.enterprise.context.Dependent;
 import javax.ws.rs.ProcessingException;
@@ -25,7 +25,7 @@ import dev.startupstack.tenantservice.models.firebase.TokenResponse;
 public class FirebaseRestService {
 
 
-    private static final Logger LOG = Logger.getLogger(SessionServiceFirebaseImpl.class);
+    private static final Logger LOG = Logger.getLogger(FirebaseRestService.class);
 
     @ConfigProperty(name = "startupstack.tenantservice.firebase.webapikey")
     String webApiKey;
@@ -38,13 +38,13 @@ public class FirebaseRestService {
         this.client = ClientBuilder.newBuilder().build();
     }
 
-    LoginResponse login(LoginModel entity) {
+    public LoginResponse login(LoginModel entity) {
         Response response = this.doPost(Entity.json(entity), "/accounts:signInWithPassword");
         LOG.debug(response.readEntity(String.class));
         return response.readEntity(LoginResponse.class);
     }
 
-    TokenResponse exchangeToken(Form form) {
+    public TokenResponse exchangeToken(Form form) {
         Response response = this.doPost(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE), "/token");
         return response.readEntity(TokenResponse.class);
     }

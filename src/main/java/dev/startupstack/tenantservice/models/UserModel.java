@@ -11,13 +11,13 @@ import java.util.Map;
  */
 public class UserModel {
 
-    private String uid;
+    private String id;
     private String email;
     private String password;
     private String provider;
 
     @SuppressWarnings("unused")
-    private String organizationID;
+    private String tenantID;
 
     @SuppressWarnings("unused")
     private String role;
@@ -28,12 +28,12 @@ public class UserModel {
 
     }
 
-    public String getUid() {
-        return uid;
+    public String getid() {
+        return id;
     }
 
-    public void setUid(String uid) {
-        this.uid = uid;
+    public void setid(String id) {
+        this.id = id;
     }
 
     public String getEmail() {
@@ -52,12 +52,12 @@ public class UserModel {
         this.password = password;
     }
 
-    public String getOrganizationID() {
+    public String getTenantID() {
         return this.customClaims.get(CLAIM_NAME_TENANT_ID).toString();
     }
 
-    public void setOrganizationID(String orgid) {
-        this.organizationID = orgid;
+    public void setTenantID(String orgid) {
+        this.tenantID = orgid;
         this.customClaims.put(CLAIM_NAME_TENANT_ID, orgid);
     }
 

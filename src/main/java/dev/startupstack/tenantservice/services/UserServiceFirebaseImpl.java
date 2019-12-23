@@ -1,7 +1,7 @@
 package dev.startupstack.tenantservice.services;
 
-import static dev.startupstack.tenantservice.Constants.CLAIM_NAME_TENANT_ID;
 import static dev.startupstack.tenantservice.Constants.CLAIM_NAME_ROLE;
+import static dev.startupstack.tenantservice.Constants.CLAIM_NAME_TENANT_ID;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +29,7 @@ import com.google.firebase.auth.UserRecord.UpdateRequest;
 
 import org.jboss.logging.Logger;
 
+import dev.startupstack.tenantservice.entities.UserEntity;
 import dev.startupstack.tenantservice.models.CreateUserModel;
 import dev.startupstack.tenantservice.models.UpdateUserModel;
 import dev.startupstack.tenantservice.models.UserModel;
@@ -47,17 +48,20 @@ public class UserServiceFirebaseImpl implements UserService {
     @Inject
     FirebaseSDKService firebaseSDKService;
 
+    @Inject
+    EntityService entityService;
+
     @Override
-    public Response getUserByID(String uid) {
+    public Response getUser(String id) {
         try {
-            UserRecord user = FirebaseAuth.getInstance().getUser(uid);
-            UserModel userDTO = new UserModel();
+            UserRecord user = FirebaseAuth.getInstance().getUser(id);
+            UserModel userModel = new UserModel();
 
-            userDTO.setUid(user.getUid());
-            userDTO.setCustomClaims(user.getCustomClaims());
-            userDTO.setProvider(user.getProviderId());
+            userModel.setid(user.getUid());
+            userModel.setCustomClaims(user.getCustomClaims());
+            userModel.setProvider(user.getProviderId());
 
-            return Response.ok().entity(this.mapper.writeValueAsString(userDTO)).build();
+            return Response.ok().entity(this.mapper.writeValueAsString(userModel)).build();
 
         } catch (FirebaseAuthException fbae) {
             if (fbae.getErrorCode().equals("user-not-found")) {
@@ -71,21 +75,21 @@ public class UserServiceFirebaseImpl implements UserService {
     }
 
     @Override
-    public Response listAllUsers() {
+    public Response listUsers() {
         List<UserModel> userJSONList = new ArrayList<>();
 
         try {
             for (Iterator<ExportedUserRecord> iterator = FirebaseAuth.getInstance().listUsers(null).getValues()
                     .iterator(); iterator.hasNext();) {
                 ExportedUserRecord user = iterator.next();
-                UserModel userDTO = new UserModel();
+                UserModel userModel = new UserModel();
 
-                userDTO.setEmail(user.getEmail());
-                userDTO.setUid(user.getUid());
-                userDTO.setCustomClaims(user.getCustomClaims());
-                userDTO.setProvider(user.getProviderId());
+                userModel.setEmail(user.getEmail());
+                userModel.setid(user.getUid());
+                userModel.setCustomClaims(user.getCustomClaims());
+                userModel.setProvider(user.getProviderId());
 
-                userJSONList.add(userDTO);
+                userJSONList.add(userModel);
             }
             return Response.ok().entity(this.mapper.writeValueAsString(userJSONList)).build();
 
@@ -107,6 +111,9 @@ public class UserServiceFirebaseImpl implements UserService {
             FirebaseAuth.getInstance().setCustomUserClaims(createdUser.getUid(), user.getCustomClaims());
 
             UserRecord responseObject = FirebaseAuth.getInstance().getUser(createdUser.getUid());
+
+            entityService.createUser(user, createdUser.getUid());
+
             return Response.status(Status.CREATED).entity(this.mapper.writeValueAsString(
                     new WebResponseModel("user created", Status.CREATED.getStatusCode(), responseObject))).build();
         } catch (FirebaseAuthException | JsonProcessingException exception) {
@@ -115,9 +122,9 @@ public class UserServiceFirebaseImpl implements UserService {
     }
 
     @Override
-    public Response deleteUserByID(String uid) {
+    public Response deleteUser(String id) {
         try {
-            FirebaseAuth.getInstance().deleteUser(uid);
+            FirebaseAuth.getInstance().deleteUser(id);
             return Response.status(Status.NO_CONTENT)
                     .entity(this.mapper
                             .writeValueAsString(new WebResponseModel("user deleted", Status.NO_CONTENT.getStatusCode())))
@@ -128,32 +135,39 @@ public class UserServiceFirebaseImpl implements UserService {
     }
 
     @Override
-    public Response updateUser(UpdateUserModel userDTO) {
-        UpdateRequest request = new UpdateRequest(userDTO.getUid());
+    public Response updateUser(UpdateUserModel user) {
+        UpdateRequest request = new UpdateRequest(user.getid());
 
-        if (userDTO.getEmail() != null) {
-            request.setEmail(userDTO.getEmail());
+        if (user.getEmail() != null) {
+            request.setEmail(user.getEmail());
         }
-        if (userDTO.getPassword() != null) {
-            request.setPassword(userDTO.getPassword());
+        if (user.getPassword() != null) {
+            request.setPassword(user.getPassword());
         }
-        if (userDTO.getRole() != null) {
+        if (user.getRole() != null) {
             try {
-                Map<String, Object> currentClaims = FirebaseAuth.getInstance().getUser(userDTO.getUid())
+                Map<String, Object> currentClaims = FirebaseAuth.getInstance().getUser(user.getid())
                         .getCustomClaims();
 
                 Map<String, Object> modifiedClaims = new HashMap<>();
                 modifiedClaims.put(CLAIM_NAME_TENANT_ID, currentClaims.get(CLAIM_NAME_TENANT_ID));
-                modifiedClaims.put(CLAIM_NAME_ROLE, userDTO.getRole());
+                modifiedClaims.put(CLAIM_NAME_ROLE, user.getRole());
 
                 request.setCustomClaims(modifiedClaims);
             } catch (FirebaseAuthException exception) {
-                LOG.error(exception.getMessage(), exception);
-                throw new WebApplicationException(exception.getMessage());
+                throw new WebApplicationException(exception.getMessage(), exception);
             }
         }
         try {
             UserRecord updatedUser = FirebaseAuth.getInstance().updateUser(request);
+
+            UserEntity userEntity = new UserEntity();
+            userEntity.setid(updatedUser.getUid());
+            userEntity.setRole(updatedUser.getCustomClaims().get(CLAIM_NAME_ROLE).toString());
+            userEntity.setEmail(updatedUser.getEmail());
+            
+            entityService.updateUser(userEntity);
+            
             return Response.status(Status.NO_CONTENT).entity(this.mapper.writeValueAsString(
                     new WebResponseModel("user updated", Status.NO_CONTENT.getStatusCode(), updatedUser))).build();
         } catch (FirebaseAuthException | JsonProcessingException exception) {
