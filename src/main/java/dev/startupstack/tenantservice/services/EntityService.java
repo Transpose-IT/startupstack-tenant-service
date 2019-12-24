@@ -16,7 +16,7 @@ import dev.startupstack.tenantservice.entities.UserEntity;
 import dev.startupstack.tenantservice.models.CreateUserModel;
 
 /**
- * EntityService
+ * 
  */
 @ApplicationScoped
 class EntityService {
@@ -26,6 +26,11 @@ class EntityService {
     @Inject
     EntityManager entityManager;
 
+    
+    /** 
+     * @param id
+     * @return String
+     */
     String getRefreshToken(String id) {
         LOG.debugf("[%s] Getting refresh token ...", id);
         try {
@@ -42,6 +47,12 @@ class EntityService {
         }
     }
 
+    
+    /** 
+     * @param id
+     * @param refresh_token
+     * @throws WebApplicationException
+     */
     @Transactional
     void updateRefreshToken(String id, String refresh_token) throws WebApplicationException {
         LOG.debugf("[%s] Updating refresh token ...", id);
@@ -59,6 +70,12 @@ class EntityService {
         }
     }
 
+    
+    /** 
+     * @param userModel
+     * @param id
+     * @throws WebApplicationException
+     */
     @Transactional
     void createUser(CreateUserModel userModel, String id) throws WebApplicationException {
         LOG.debugf("[%s] Creating new DB user ...", id);
@@ -77,6 +94,11 @@ class EntityService {
         }
     }
 
+    
+    /** 
+     * @param id
+     * @throws WebApplicationException
+     */
     @Transactional
     void deleteUser(String id) throws WebApplicationException {
         LOG.debugf("[%s] Deleting DB user ...", id);
@@ -90,11 +112,22 @@ class EntityService {
         }
     }
 
+    
+    /** 
+     * Updates a user in the DB. Calls entityManager.merge on the given Entity
+     * 
+     * @param userEntity a valid UserEntity
+     */
     @Transactional
     void updateUser(UserEntity userEntity) {
         entityManager.merge(userEntity);
     }
 
+    
+    /** 
+     * @param email
+     * @return boolean
+     */
     boolean existingUser(String email) {
         Query query = entityManager.createNativeQuery("SELECT * FROM users WHERE email = :email" , UserEntity.class);
         query.setParameter("email", email);

@@ -107,11 +107,13 @@ public class TokenServiceFirebaseImpl implements TokenService {
     @Override
     public UserModel getDecryptedToken(String accessToken) {
         FirebaseToken decryptedToken = firebaseSDKService.getDecryptedToken(accessToken);
-        UserModel user = new UserModel();
-        user.setEmail(decryptedToken.getEmail());
-        user.setid(decryptedToken.getUid());
-        user.setCustomClaims(decryptedToken.getClaims());
-        return user;
+        if (decryptedToken != null) {
+            UserModel user = new UserModel();
+            user.setEmail(decryptedToken.getEmail());
+            user.setid(decryptedToken.getUid());
+            user.setCustomClaims(decryptedToken.getClaims());
+            return user;
+        }
+        return null;
     }
-
 }

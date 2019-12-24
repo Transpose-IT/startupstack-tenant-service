@@ -60,7 +60,10 @@ public class SessionServiceFirebaseImpl implements SessionService {
     public Response logout(String accessToken, String id) {
         LOG.infof("[%s] Logging out user ...", id);
         UserModel userInfo = tokenService.getDecryptedToken(accessToken);
-        if (userInfo.getid().equals(id)) {
+        if (userInfo == null) {
+            LOG.infof("[%s] Logging out user: OK - Already logged out", id);
+            return Response.noContent().build();
+        } else if (userInfo.getid().equals(id)) {
             tokenService.revokeTokens(id);
             LOG.infof("[%s] Logging out user: OK", id);
             return Response.noContent().build();
