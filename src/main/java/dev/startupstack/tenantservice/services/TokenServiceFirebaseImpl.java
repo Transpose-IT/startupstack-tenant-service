@@ -41,32 +41,38 @@ public class TokenServiceFirebaseImpl implements TokenService {
 
     @Override
     public Response exchangeToken(Form form) throws WebApplicationException {
-
+        LOG.info("Exchanging Token ...");
         try {
             TokenResponse restResponse = firebaseRestService.exchangeToken(form);
             if (restResponse.getError().isEmpty()) {
+                LOG.info("Exchanging Token: OK");
                 return Response.ok().entity(restResponse).build();
             } else {
                 int code = (int) restResponse.getError().get("code");
+                LOG.warnf("Exchanging Token: FAILED - %s", restResponse.getError().get("message").toString());
                 return Response.status(code).entity(restResponse).build();
             }
         } catch (ProcessingException | IllegalStateException exception) {
+            LOG.errorf("Exchanging Token: FAILED - %s", exception.getMessage());
             throw new WebApplicationException(exception.getMessage(), exception);
         }
     }
 
     @Override
     public Response validateToken(String accessToken, String id) throws WebApplicationException {
+        LOG.infof("[%s] Validating token ...", id);
         Optional<FirebaseAuthException> result = firebaseSDKService.verifyToken(accessToken);
 
         if (result.isPresent()) {
             FirebaseAuthException firebaseResult = result.get();
             if (firebaseResult.getErrorCode() == FIREBASE_ERROR_INVALID_CREDENTIAL) {
+                LOG.infof("[%s] Validating Token: PENDING - Token expired, attempting to refresh it", id);
                 String refresh_token = entityService.getRefreshToken(id);
 
                 if (refresh_token == null) {
-                    return Response.status(Status.UNAUTHORIZED.getStatusCode())
-                            .entity(new WebResponseModel("NO_REFRESHTOKEN", Status.UNAUTHORIZED.getStatusCode()))
+                    LOG.warnf("[%s] Validating Token: FAILED - no refresh token present in DB", id);
+                    return Response.status(Status.BAD_REQUEST.getStatusCode())
+                            .entity(new WebResponseModel("NO_REFRESHTOKEN", Status.BAD_REQUEST.getStatusCode()))
                             .build();
                 }
 
@@ -74,16 +80,20 @@ public class TokenServiceFirebaseImpl implements TokenService {
                 TokenResponse refreshedAccessToken = this.exchangeToken(form).readEntity(TokenResponse.class);
 
                 if (refreshedAccessToken.getError().isEmpty()) {
+                    LOG.infof("[%s] Validating Token: OK", id);
                     return Response.ok().entity(refreshedAccessToken).build();
                 } else {
-                    return Response.status(Status.UNAUTHORIZED.getStatusCode()).entity(refreshedAccessToken).build();
+                    LOG.warnf("[%s] Validating Token: FAILED - %s", id, refreshedAccessToken.getError().get("message"));
+                    return Response.status(Status.FORBIDDEN.getStatusCode()).entity(refreshedAccessToken).build();
                 }
             } else {
                 int statusCode = Status.BAD_REQUEST.getStatusCode();
+                LOG.warnf("[%s] Validating Token: FAILED - %s", id, result.get().getMessage());
                 return Response.status(statusCode).entity(new WebResponseModel(result.get().getMessage(), statusCode))
                         .build();
             }
         } else {
+            LOG.infof("[%s] Validating Token: OK", id);
             return Response.noContent().build();
         }
     }

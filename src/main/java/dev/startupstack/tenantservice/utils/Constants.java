@@ -1,4 +1,4 @@
-package dev.startupstack.tenantservice;
+package dev.startupstack.tenantservice.utils;
 
 /**
  * Constants

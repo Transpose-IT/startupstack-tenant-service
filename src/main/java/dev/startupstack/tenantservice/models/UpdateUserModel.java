@@ -1,6 +1,6 @@
 package dev.startupstack.tenantservice.models;
 
-import static dev.startupstack.tenantservice.Constants.CLAIM_NAME_ROLE;
+import static dev.startupstack.tenantservice.utils.Constants.CLAIM_NAME_ROLE;
 
 import java.util.HashMap;
 import java.util.Map;

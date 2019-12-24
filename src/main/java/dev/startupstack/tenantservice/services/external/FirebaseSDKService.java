@@ -35,11 +35,13 @@ public class FirebaseSDKService {
     public Optional<FirebaseAuthException> verifyToken(String accessToken) throws WebApplicationException {
         Optional<FirebaseAuthException> result = Optional.empty();
         try {
-            FirebaseAuth.getInstance().verifyIdToken(accessToken);
+            LOG.debug("Verifying token ...");
+            FirebaseToken token = FirebaseAuth.getInstance().verifyIdToken(accessToken);
+            LOG.debugf("[%s] Token OK", token.getUid());
             return result;
         } catch (FirebaseAuthException fae) {
             result = Optional.of(fae);
-            LOG.warn("Token validation failed: " + fae.getMessage());
+            LOG.warn("Token validation failed: " + fae.getErrorCode());
             return result;
         } catch (IllegalArgumentException iae) {
             throw new WebApplicationException(iae.getMessage(), iae);
@@ -48,7 +50,10 @@ public class FirebaseSDKService {
 
     public FirebaseToken getDecryptedToken(String accessToken) throws WebApplicationException {
         try {
-            return FirebaseAuth.getInstance().verifyIdToken(accessToken, true);
+            LOG.info("Validating and parsing token ...");
+            FirebaseToken token = FirebaseAuth.getInstance().verifyIdToken(accessToken, true);
+            LOG.infof("[%s] Parsing OK, returning token", token.getUid());
+            return token;
         } catch (FirebaseAuthException fae) {
             LOG.warn("Unable to get token: " + fae.getMessage());
             return null;
@@ -72,11 +77,13 @@ public class FirebaseSDKService {
     void initialize() {
         if (FirebaseApp.getApps().isEmpty()) {
             try {
+                LOG.info("Initializing FirebaseApp ...");
                 FileInputStream serviceAccount = new FileInputStream(serviceAccountFile);
                 FirebaseOptions options = new FirebaseOptions.Builder()
                         .setCredentials(GoogleCredentials.fromStream(serviceAccount)).build();
     
                 FirebaseApp.initializeApp(options);
+                LOG.info("FirebaseApp initialized");
             } catch (IOException | NullPointerException exception) {
                 throw new WebApplicationException(exception.getMessage(), exception);
             }

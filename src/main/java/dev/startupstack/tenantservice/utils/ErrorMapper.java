@@ -1,4 +1,4 @@
-package dev.startupstack.tenantservice;
+package dev.startupstack.tenantservice.utils;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;

@@ -1,6 +1,6 @@
 package dev.startupstack.tenantservice.resources;
 
-import static dev.startupstack.tenantservice.Constants.API_URL_PREFIX;
+import static dev.startupstack.tenantservice.utils.Constants.API_URL_PREFIX;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;

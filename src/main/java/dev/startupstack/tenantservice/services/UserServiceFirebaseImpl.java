@@ -1,7 +1,7 @@
 package dev.startupstack.tenantservice.services;
 
-import static dev.startupstack.tenantservice.Constants.CLAIM_NAME_ROLE;
-import static dev.startupstack.tenantservice.Constants.CLAIM_NAME_TENANT_ID;
+import static dev.startupstack.tenantservice.utils.Constants.CLAIM_NAME_ROLE;
+import static dev.startupstack.tenantservice.utils.Constants.CLAIM_NAME_TENANT_ID;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,8 +17,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.ExportedUserRecord;
 import com.google.firebase.auth.FirebaseAuth;
@@ -33,8 +31,8 @@ import dev.startupstack.tenantservice.entities.UserEntity;
 import dev.startupstack.tenantservice.models.CreateUserModel;
 import dev.startupstack.tenantservice.models.UpdateUserModel;
 import dev.startupstack.tenantservice.models.UserModel;
-import dev.startupstack.tenantservice.models.WebResponseModel;
 import dev.startupstack.tenantservice.services.external.FirebaseSDKService;
+import dev.startupstack.tenantservice.utils.WebResponseBuilder;
 
 /**
  * UserServiceFirebaseImpl
@@ -43,7 +41,6 @@ import dev.startupstack.tenantservice.services.external.FirebaseSDKService;
 @Dependent
 public class UserServiceFirebaseImpl implements UserService {
     private static final Logger LOG = Logger.getLogger(UserServiceFirebaseImpl.class);
-    private ObjectMapper mapper = new ObjectMapper();
 
     @Inject
     FirebaseSDKService firebaseSDKService;
@@ -51,9 +48,13 @@ public class UserServiceFirebaseImpl implements UserService {
     @Inject
     EntityService entityService;
 
+    @Inject
+    TenantService tenantService;
+
     @Override
     public Response getUser(String id) {
         try {
+            LOG.infof("[%s] Getting user info from Firebase ...", id);
             UserRecord user = FirebaseAuth.getInstance().getUser(id);
             UserModel userModel = new UserModel();
 
@@ -61,16 +62,16 @@ public class UserServiceFirebaseImpl implements UserService {
             userModel.setCustomClaims(user.getCustomClaims());
             userModel.setProvider(user.getProviderId());
 
-            return Response.ok().entity(this.mapper.writeValueAsString(userModel)).build();
+            LOG.infof("[%s] Getting user info: OK", id);
+            return WebResponseBuilder.build(null, Status.OK.getStatusCode(), userModel);
 
         } catch (FirebaseAuthException fbae) {
             if (fbae.getErrorCode().equals("user-not-found")) {
-                throw new WebApplicationException(fbae.getMessage(), Status.NOT_FOUND);
+                LOG.warnf("[%s] Getting user info: FAILED - user not found", id);
+                return WebResponseBuilder.build("user not found", Status.NOT_FOUND.getStatusCode());
             } else {
                 throw new WebApplicationException(fbae.getMessage());
             }
-        } catch (JsonProcessingException jpe) {
-            return Response.status(500).entity(jpe).build();
         }
     }
 
@@ -79,6 +80,7 @@ public class UserServiceFirebaseImpl implements UserService {
         List<UserModel> userJSONList = new ArrayList<>();
 
         try {
+            LOG.info("Listing all users ...");
             for (Iterator<ExportedUserRecord> iterator = FirebaseAuth.getInstance().listUsers(null).getValues()
                     .iterator(); iterator.hasNext();) {
                 ExportedUserRecord user = iterator.next();
@@ -91,60 +93,73 @@ public class UserServiceFirebaseImpl implements UserService {
 
                 userJSONList.add(userModel);
             }
-            return Response.ok().entity(this.mapper.writeValueAsString(userJSONList)).build();
-
-        } catch (FirebaseAuthException | JsonProcessingException exception) {
+            LOG.info("Listing all users: OK ");
+            return WebResponseBuilder.build(null, Status.OK.getStatusCode(), userJSONList);
+        } catch (FirebaseAuthException exception) {
+            LOG.errorf("Listing all users: FAILED - %s", exception.getMessage());
             throw new WebApplicationException(exception.getMessage());
         }
     }
 
     @Override
-    // TODO: Add check to check for existing email addresses
     public Response createUser(CreateUserModel user) {
-        CreateRequest request = new CreateRequest();
-        request.setEmail(user.getEmail());
-        request.setUid(UUID.randomUUID().toString());
-        request.setPassword(user.getPassword());
+        LOG.info("Creating user ...");
+        if (entityService.existingUser(user.getEmail())) {
+            LOG.info("user creation: FAILED - User already exists");
+            return WebResponseBuilder.build("user already exists", Status.FORBIDDEN.getStatusCode());
+        }
+        Response checkTenantID = tenantService.getTenant(user.getTenantID());
+        if (checkTenantID.getStatus() == Status.FORBIDDEN.getStatusCode()) {
+            LOG.warn("user creation: FAILED - tenant not found");
+            return WebResponseBuilder.build("tenant_id not found", Status.FORBIDDEN.getStatusCode());
+        }
 
         try {
+            CreateRequest request = new CreateRequest();
+            request.setEmail(user.getEmail());
+            request.setUid(UUID.randomUUID().toString());
+            request.setPassword(user.getPassword());
             UserRecord createdUser = FirebaseAuth.getInstance().createUser(request);
             FirebaseAuth.getInstance().setCustomUserClaims(createdUser.getUid(), user.getCustomClaims());
 
             UserRecord responseObject = FirebaseAuth.getInstance().getUser(createdUser.getUid());
-
             entityService.createUser(user, createdUser.getUid());
 
-            return Response.status(Status.CREATED).entity(this.mapper.writeValueAsString(
-                    new WebResponseModel("user created", Status.CREATED.getStatusCode(), responseObject))).build();
-        } catch (FirebaseAuthException | JsonProcessingException exception) {
-            throw new WebApplicationException(exception.getMessage());
+            LOG.infof("user creation: OK - %s", createdUser.getUid());
+            return WebResponseBuilder.build("user created", Status.CREATED.getStatusCode(), responseObject);
+        } catch (FirebaseAuthException exception) {
+            LOG.errorf("user creation: FAILED - %s", exception.getMessage());
+            throw new WebApplicationException(exception.getMessage(), exception);
         }
     }
 
     @Override
     public Response deleteUser(String id) {
+        LOG.infof("[%s] Deleting user ...", id);
         try {
             FirebaseAuth.getInstance().deleteUser(id);
-            return Response.status(Status.NO_CONTENT)
-                    .entity(this.mapper
-                            .writeValueAsString(new WebResponseModel("user deleted", Status.NO_CONTENT.getStatusCode())))
-                    .build();
-        } catch (FirebaseAuthException | JsonProcessingException exception) {
+            LOG.infof("[%s] User deletion: OK");
+            return WebResponseBuilder.build(null, Status.NO_CONTENT.getStatusCode());
+        } catch (FirebaseAuthException exception) {
             throw new WebApplicationException(exception.getMessage());
         }
     }
 
     @Override
     public Response updateUser(UpdateUserModel user) {
+        LOG.infof("[%s] Updating user ...", user.getid());
         UpdateRequest request = new UpdateRequest(user.getid());
 
         if (user.getEmail() != null) {
+            LOG.debug("changing email address");
             request.setEmail(user.getEmail());
         }
         if (user.getPassword() != null) {
+            LOG.debug("changing password");
             request.setPassword(user.getPassword());
         }
         if (user.getRole() != null) {
+            LOG.debug("changing role");
             try {
                 Map<String, Object> currentClaims = FirebaseAuth.getInstance().getUser(user.getid())
                         .getCustomClaims();
@@ -155,6 +170,7 @@ public class UserServiceFirebaseImpl implements UserService {
 
                 request.setCustomClaims(modifiedClaims);
             } catch (FirebaseAuthException exception) {
+                LOG.errorf("[%s] Updating user: FAILED - changing role failed: %s", user.getid(), exception.getMessage());
                 throw new WebApplicationException(exception.getMessage(), exception);
             }
         }
@@ -167,10 +183,9 @@ public class UserServiceFirebaseImpl implements UserService {
             userEntity.setEmail(updatedUser.getEmail());
             
             entityService.updateUser(userEntity);
-            
-            return Response.status(Status.NO_CONTENT).entity(this.mapper.writeValueAsString(
-                    new WebResponseModel("user updated", Status.NO_CONTENT.getStatusCode(), updatedUser))).build();
-        } catch (FirebaseAuthException | JsonProcessingException exception) {
+            LOG.infof("[%s] Updating user: OK", updatedUser.getUid());
+            return WebResponseBuilder.build("user updated", Status.ACCEPTED.getStatusCode(), updatedUser);
+        } catch (FirebaseAuthException exception) {
             throw new WebApplicationException(exception.getMessage());
         }
     }
