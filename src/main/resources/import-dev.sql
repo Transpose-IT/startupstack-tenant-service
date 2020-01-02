@@ -1,0 +1,3 @@
+INSERT INTO tenants(id,name) VALUES('54ce8b99-97c4-4c37-944d-2283c4a26e76', 'tenant123');
+INSERT INTO users (id,email,role,tenant_id) VALUES('7ee38061-178c-450c-b042-c88588cd7f4d','jorn@test.com','admin','54ce8b99-97c4-4c37-944d-2283c4a26e76');
+--INSERT INTO tokens (refresh_token,id,id) VALUES('AEu4IL2uSQwI4n_G3b62XkdUVeSJkqkp8r7QKhHmUo-WSugsiaKiJ7xghDq7he1esT4NUL1mkt9SVzYCtFUPIGp9z0EOFGeLFL8Xete3XL4QuRfnvcsQ9-MgE6vKaep6_T_bCXRV33tlzqFyq66Ex2DQok11u4rfUCFhuDEJTq5iqCYkhOLU0yzXvR3DeVaFG2Qtsrkoa_MdUpl-90mTfPF-u_eTjnkclsf41ML3Iut_c15Zl7WTIe4','7ee38061-178c-450c-b042-c88588cd7f4d',nextval('hibernate_sequence'));
