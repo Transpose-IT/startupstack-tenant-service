@@ -14,15 +14,15 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import dev.startupstack.tenantservice.models.LoginModel;
-import dev.startupstack.tenantservice.models.ModelValidator;
+import dev.startupstack.tenantservice.utils.ModelValidator;
 import dev.startupstack.tenantservice.services.SessionService;
 
-
+/**
+ * REST entrypoint (resource) for session actions such as logging in and logging out
+ */
 @ApplicationScoped
 @Path(API_URL_PREFIX + "/session")
 public class SessionResource {
-
-
 
     @Inject
     SessionService sessionService;

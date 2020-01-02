@@ -17,11 +17,11 @@ import javax.ws.rs.core.Response;
 
 
 import dev.startupstack.tenantservice.models.CreateTenantModel;
-import dev.startupstack.tenantservice.models.ModelValidator;
+import dev.startupstack.tenantservice.utils.ModelValidator;
 import dev.startupstack.tenantservice.services.TenantService;
 
 /**
- * TenantResource
+ * REST entrypoint (resource) for tenant related actions
  */
 @ApplicationScoped
 @Path(API_URL_PREFIX + "/tenant")

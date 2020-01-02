@@ -19,7 +19,7 @@ import dev.startupstack.tenantservice.services.TokenService;
 
 
 /**
- * TokenResource
+ * REST entrypoint (resource) for Tokens issued by this service
  */
 @ApplicationScoped
 @Path(API_URL_PREFIX + "/token")

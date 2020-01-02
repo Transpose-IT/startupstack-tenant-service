@@ -21,7 +21,9 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 /**
- * FirebaseSDKService
+ * This class wraps the Firebase Admin SDK into calls that we'd need in this
+ * service. Note that the SDK does not provide login capabiltiies, we need the
+ * REST service for that.
  */
 @Dependent
 public class FirebaseSDKService {
@@ -32,6 +34,19 @@ public class FirebaseSDKService {
     @ConfigProperty(name = "startupstack.tenantservice.firebase.keyfile")
     String serviceAccountFile;
 
+    /**
+     * Validates an active token issued by Firebase using the Firebase SDK. This
+     * does NOT validate if a token has been revoked as this will require a
+     * roundtrip to Firebase. That means a revoked token will pass the validation
+     * until it expires. If a FirebaseAuthException is thrown, it is captured in the
+     * Optional which can then be handled by the caller.
+     * 
+     * @param accessToken An accesstoken issued by Firebase
+     * @return Optional<FirebaseAuthException> An optional exception, will be filled
+     *         if an error is found, and empty if verification is successful.
+     * @throws WebApplicationException A standard exception that is expected to be
+     *                                 caught and wrapped in a JSON response
+     */
     public Optional<FirebaseAuthException> verifyToken(String accessToken) throws WebApplicationException {
         Optional<FirebaseAuthException> result = Optional.empty();
         try {
@@ -48,11 +63,22 @@ public class FirebaseSDKService {
         }
     }
 
+    /**
+     * Returns a decrypted Firebase token which can be used by the caller to
+     * validate the contents of the token, e.g. if the user has a certain role or
+     * which tenant a user is a part of. Also checks on the Firebase server side to
+     * determine if the token has expired.
+     * 
+     * @param accessToken A valid Firebase-issued accesstoken
+     * @return FirebaseToken A decrypted Firebase Token
+     * @throws WebApplicationException A standard exception that is expected to be
+     *                                 caught and wrapped in a JSON response
+     */
     public FirebaseToken getDecryptedToken(String accessToken) throws WebApplicationException {
         try {
-            LOG.info("Validating and parsing token ...");
+            LOG.debug("Validating and parsing token ...");
             FirebaseToken token = FirebaseAuth.getInstance().verifyIdToken(accessToken, true);
-            LOG.infof("[%s] Parsing OK, returning token", token.getUid());
+            LOG.debugf("[%s] Parsing OK, returning token", token.getUid());
             return token;
         } catch (FirebaseAuthException fae) {
             LOG.warn("Unable to get token: " + fae.getMessage());
@@ -62,28 +88,38 @@ public class FirebaseSDKService {
         }
     }
 
-    
+    /**
+     * Revokes all active tokens for a given user, effectively logging them out.
+     * 
+     * @param id A user ID which is known by Firebase
+     * @throws WebApplicationException A standard exception that is expected to be
+     *                                 caught and wrapped in a JSON response
+     */
     public void revokeTokens(String id) throws WebApplicationException {
         try {
-            LOG.infof("[%s] Revoking tokens ...", id);
+            LOG.debugf("[%s] Revoking tokens ...", id);
             FirebaseAuth.getInstance().revokeRefreshTokens(id);
-            LOG.infof("[%s] Revoke tokens OK", id);
+            LOG.debugf("[%s] Revoke tokens OK", id);
         } catch (IllegalArgumentException | FirebaseAuthException exception) {
             throw new WebApplicationException(exception.getMessage(), exception);
         }
     }
 
+    /**
+     * Initialize the class by loading the service account file. The SDK is mostly
+     * static so you need to initialize it only once.
+     */
     @PostConstruct
     void initialize() {
         if (FirebaseApp.getApps().isEmpty()) {
             try {
-                LOG.info("Initializing FirebaseApp ...");
+                LOG.debug("Initializing FirebaseApp ...");
                 FileInputStream serviceAccount = new FileInputStream(serviceAccountFile);
                 FirebaseOptions options = new FirebaseOptions.Builder()
                         .setCredentials(GoogleCredentials.fromStream(serviceAccount)).build();
-    
+
                 FirebaseApp.initializeApp(options);
-                LOG.info("FirebaseApp initialized");
+                LOG.debug("FirebaseApp initialized");
             } catch (IOException | NullPointerException exception) {
                 throw new WebApplicationException(exception.getMessage(), exception);
             }
@@ -93,8 +129,8 @@ public class FirebaseSDKService {
     @PreDestroy
     void predestroy() {
         if (FirebaseApp.getApps().isEmpty() == false) {
-            FirebaseApp.getInstance().delete();    
+            FirebaseApp.getInstance().delete();
         }
     }
-    
+
 }

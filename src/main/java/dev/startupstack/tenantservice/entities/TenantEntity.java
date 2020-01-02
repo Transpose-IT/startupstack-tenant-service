@@ -6,7 +6,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
- * TenantEntity
+ * TenantEntity has the DB representation of a tenant
  */
 @Entity
 @Table(name = "tenants")

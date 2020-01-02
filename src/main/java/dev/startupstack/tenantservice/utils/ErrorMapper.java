@@ -9,10 +9,15 @@ import org.jboss.logging.Logger;
 
 import dev.startupstack.tenantservice.models.WebResponseModel;
 
+/**
+ * This intercepts the exceptions thrown and formats it according to the
+ * {@link WebResponseModel} so that we always get properly formatted JSON back
+ */
 @Provider
 public class ErrorMapper implements ExceptionMapper<Exception> {
 
     private static final Logger LOG = Logger.getLogger(ExceptionMapper.class);
+
     @Override
     public Response toResponse(Exception exception) {
         int code = 500;

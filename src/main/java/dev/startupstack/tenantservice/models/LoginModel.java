@@ -5,7 +5,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 /**
- * LoginDTO
+ * LoginModel represents the data needed to login a user
  */
 public class LoginModel {
 

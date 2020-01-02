@@ -8,7 +8,9 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
- * UserEntity
+ * UserEntity has the DB representation of a user. Used primarily to store the
+ * refresh token of a logged in user, as well as having some persistent cache
+ * for commonly used user data.
  */
 @Entity
 @Table(name = "users")
@@ -28,6 +30,19 @@ public class UserEntity {
 
     private String refresh_token;
 
+    public UserEntity() {
+
+    }
+
+    public UserEntity(String id, String email, TenantEntity tenant, String role) {
+        this.id = id;
+        this.email = email;
+        this.tenant = tenant;
+        this.role = role;
+    }
+
+    public UserEntity(String uid, String email2, String string) {
+    }
 
     public String getId() {
         return this.id;
@@ -77,16 +92,10 @@ public class UserEntity {
         this.email = email;
     }
 
-
     @Override
     public String toString() {
-        return "{" +
-            " id='" + getid() + "'" +
-            ", email='" + getEmail() + "'" +
-            ", role='" + getRole() + "'" +
-            ", refresh_token='" + getRefresh_token() + "'" +
-            "}";
+        return "{" + " id='" + getid() + "'" + ", email='" + getEmail() + "'" + ", role='" + getRole() + "'"
+                + ", refresh_token='" + getRefresh_token() + "'" + "}";
     }
-
 
 }

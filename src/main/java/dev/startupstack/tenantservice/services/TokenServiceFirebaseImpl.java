@@ -22,7 +22,9 @@ import dev.startupstack.tenantservice.services.external.FirebaseRestService;
 import dev.startupstack.tenantservice.services.external.FirebaseSDKService;
 
 /**
- * TokenServiceFirebaseImpl
+ * The TokenServiceFirebaseImpl implements the {@link TokenService} for
+ * Firebase. Firebase calls tokens Firebase ID tokens but they are effectively
+ * just OAuth2 tokens.
  */
 @Dependent
 public class TokenServiceFirebaseImpl implements TokenService {
@@ -37,8 +39,18 @@ public class TokenServiceFirebaseImpl implements TokenService {
     FirebaseRestService firebaseRestService;
 
     @Inject
-    EntityService entityService;
+    UserEntityService entityService;
 
+    /**
+     * Exchanges an existing accessToken for a fresh one. Expects a JAX-RS Form
+     * object as the Firebase REST API expects a POST in the FORM_URLENCODED format.
+     * 
+     * @param form A JAX-RS {@ link Form} containing the access token.
+     * @return Response a JAX-RS {@link Response} object which has the
+     *         {@link TokenResponse} in JSON format
+     * @throws WebApplicationException A standard exception that will be caught by
+     *                                 the ErrorMapper to be returned as JSON.
+     */
     @Override
     public Response exchangeToken(Form form) throws WebApplicationException {
         LOG.info("Exchanging Token ...");
@@ -58,6 +70,22 @@ public class TokenServiceFirebaseImpl implements TokenService {
         }
     }
 
+    /**
+     * This validates a given access Token with Firebase to see if its valid. If no
+     * exception is returned, the validation succeeded and the token is valid. If an
+     * exception is thrown, we will try the refresh the access token by using the
+     * stored refresh token in the database. If this succeeds, a
+     * {@link TokenResponse} is returned to the client. If refreshing the token
+     * fails we return a standard error. If Firebase returns anything other than a
+     * {@link FIREBASE_ERROR_INVALID_CREDENTIAL} error, we return a 400 Bad Request.
+     * 
+     * @param accessToken A string of the access token
+     * @param id          a user ID
+     * @return Response a JAX-RS {@link Response} object which has the
+     *         {@link TokenResponse} in JSON format
+     * @throws WebApplicationException A standard exception that will be caught by
+     *                                 the ErrorMapper to be returned as JSON.
+     */
     @Override
     public Response validateToken(String accessToken, String id) throws WebApplicationException {
         LOG.infof("[%s] Validating token ...", id);
@@ -98,20 +126,30 @@ public class TokenServiceFirebaseImpl implements TokenService {
         }
     }
 
+    /**
+     * This passes through the call to the Firebase SDK to revoke all tokens of a given user
+     * 
+     * @param id A user id
+     * @return Response A standard JAX-RS {@link Response} object that returns a 204 No Content
+     */
     @Override
     public Response revokeTokens(String id) {
         firebaseSDKService.revokeTokens(id);
-        return Response.ok().build();
+        return Response.noContent().build();
     }
 
+    /**
+     * Takes an encrypted token and decrypts it, so services can consume its contents. Does a roundtrip to the firebase backend to determine if the token has expired, so has additional latency. If the response is null it
+     * 
+     * @param accessToken A string representation of an access token
+     * @return UserModel A user in the {@link UserModel} form, can also return null if the token cannot be decrypted.
+     */
     @Override
     public UserModel getDecryptedToken(String accessToken) {
         FirebaseToken decryptedToken = firebaseSDKService.getDecryptedToken(accessToken);
-        UserModel user = new UserModel();
-        user.setEmail(decryptedToken.getEmail());
-        user.setid(decryptedToken.getUid());
-        user.setCustomClaims(decryptedToken.getClaims());
-        return user;
+        if (decryptedToken != null) {
+            return new UserModel(decryptedToken.getUid(), decryptedToken.getEmail(), decryptedToken.getClaims());
+        }
+        return null;
     }
-
 }

@@ -6,7 +6,10 @@ import javax.ws.rs.core.Response;
 import dev.startupstack.tenantservice.models.CreateTenantModel;
 
 /**
- * UserService
+ * The TenantService controls everything in regards to Tenants. A user must be
+ * part of a tenant, and a tenant will get its own namespace within
+ * StartupStack. There is only minimal information stored with regards to
+ * Tenants.
  */
 
 @Dependent

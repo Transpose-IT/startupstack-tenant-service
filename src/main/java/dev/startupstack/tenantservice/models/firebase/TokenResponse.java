@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * TokenResponse
+ * TokenResponse represents a response from the Firebase REST API when exchanging tokens.
  */
 public class TokenResponse {
     private String refresh_token;

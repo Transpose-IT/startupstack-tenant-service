@@ -16,7 +16,9 @@ import dev.startupstack.tenantservice.services.external.FirebaseRestService;
 import dev.startupstack.tenantservice.services.external.FirebaseSDKService;
 
 /**
- * SessionServiceFirebaseImpl
+ * The SessionServiceFirebaseImpl implements the {@link SessionService} for
+ * Google Firebase. It uses the Firebase REST API rather than the SDK since the
+ * SDK does not support login functionality.
  */
 @Dependent
 public class SessionServiceFirebaseImpl implements SessionService {
@@ -33,8 +35,20 @@ public class SessionServiceFirebaseImpl implements SessionService {
     TokenService tokenService;
 
     @Inject
-    EntityService entityService;
+    UserEntityService entityService;
 
+    /**
+     * Logs in the user as according to the {@link LoginModel}. It will check if an
+     * error is returned by Firebase in its JSON response, and will report this back
+     * to the client. If login succeeds, the refreshToken will be written to the
+     * database by the {@link UserEntityService}
+     * 
+     * @param login A valid {@link LoginModel}
+     * @return Response A JAX-RS {@link Response} object in the Firebase
+     *         {@link LoginResponse} format.
+     * @throws WebApplicationException A standard exception that will be caught by
+     *                                 the ErrorMapper to be returned as JSON.
+     */
     @Override
     public Response login(LoginModel login) throws WebApplicationException {
         LOG.info("Logging in user ...");
@@ -56,11 +70,27 @@ public class SessionServiceFirebaseImpl implements SessionService {
         }
     }
 
+    /**
+     * Logs out a user, which uses the {@link TokenService} to do the actual work.
+     * With a given access token it checks if it can be decrypted. If Firebase
+     * cannot do this it means the user has already been logged out since the access
+     * token is no longer valid. It will also check if user ID in the token matches
+     * with the user its trying to log out. If this is the case a 403 Forbidden is
+     * returned, otherwise a 204 No Content.
+     * 
+     * @param accessToken A string representation of the access token
+     * @param id          A user ID
+     * @return Response A JAX-RS {@link Response} object reprensenting either a 204
+     *         or a 403.
+     */
     @Override
     public Response logout(String accessToken, String id) {
         LOG.infof("[%s] Logging out user ...", id);
         UserModel userInfo = tokenService.getDecryptedToken(accessToken);
-        if (userInfo.getid().equals(id)) {
+        if (userInfo == null) {
+            LOG.infof("[%s] Logging out user: OK - Already logged out", id);
+            return Response.noContent().build();
+        } else if (userInfo.getid().equals(id)) {
             tokenService.revokeTokens(id);
             LOG.infof("[%s] Logging out user: OK", id);
             return Response.noContent().build();

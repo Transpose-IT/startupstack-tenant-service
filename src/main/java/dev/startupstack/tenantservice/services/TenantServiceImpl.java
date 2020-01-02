@@ -18,7 +18,8 @@ import dev.startupstack.tenantservice.entities.TenantEntity;
 import dev.startupstack.tenantservice.models.CreateTenantModel;
 
 /**
- * TenantServiceFirebaseImpl
+ * This implements the {@link TenantService} within its local database and
+ * Entity.
  */
 @Dependent
 public class TenantServiceImpl implements TenantService {
@@ -28,8 +29,19 @@ public class TenantServiceImpl implements TenantService {
     @Inject
     EntityManager entityManager;
 
+    /**
+     * Retrieves a tenant according to the {@link TenantEntity} format based on the
+     * given ID.
+     * 
+     * @param id the ID of the tenant
+     * @return Response a JAX-RS {@link Response} object which has the
+     *         {@link TenantEntity} in JSON format
+     * @throws WebApplicationException A standard exception that will be caught by
+     *                                 the ErrorMapper to be returned as JSON.
+     * 
+     */
     @Override
-    public Response getTenant(String id) {
+    public Response getTenant(String id) throws WebApplicationException {
         LOG.infof("[%s] Getting tenant ...", id);
         try {
             TenantEntity tenant = entityManager.find(TenantEntity.class, id);
@@ -46,9 +58,18 @@ public class TenantServiceImpl implements TenantService {
         }
     }
 
+    /**
+     * Deletes a given tenant based on ID.
+     * 
+     * @param id A tenant ID
+     * @return Response a JAX-RS {@link Response} object which has the
+     *         {@link TenantEntity} in JSON format
+     * @throws WebApplicationException A standard exception that will be caught by
+     *                                 the ErrorMapper to be returned as JSON.
+     */
     @Override
     @Transactional
-    public Response deleteTenant(String id) {
+    public Response deleteTenant(String id) throws WebApplicationException {
         LOG.infof("[%s] Deleting tenant ...", id);
         try {
             TenantEntity tenant = entityManager.find(TenantEntity.class, id);
@@ -66,9 +87,18 @@ public class TenantServiceImpl implements TenantService {
         }
     }
 
+    /**
+     * Creates a new tenant based on the {@link CreateTenantModel}
+     * 
+     * @param tenantModel a {@link CreateTenantModel} reprensenting a tenant
+     * @return Response a JAX-RS {@link Response} object which has the
+     *         {@link TenantEntity} in JSON format
+     * @throws WebApplicationException A standard exception that will be caught by
+     *                                 the ErrorMapper to be returned as JSON.
+     */
     @Override
     @Transactional
-    public Response createTenant(CreateTenantModel tenantModel) {
+    public Response createTenant(CreateTenantModel tenantModel) throws WebApplicationException {
         LOG.info("Creating tenant ...");
         try {
             TenantEntity tenant = new TenantEntity();
@@ -83,6 +113,12 @@ public class TenantServiceImpl implements TenantService {
         }
     }
 
+    /**
+     * Returns a list of all tenants
+     * 
+     * @return Response a list of JAX-RS {@link Response} objects which has the
+     *         {@link TenantEntity} in JSON format
+     */
     @Override
     public Response listTenants() {
         LOG.info("Getting all tenant ...");

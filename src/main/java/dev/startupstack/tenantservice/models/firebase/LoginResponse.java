@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * FirebaseRestLoginResponse
+ * LoginResponse represents a response from the Firebase REST API when logging in a user
  */
 public class LoginResponse {
 

@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * ListUsers
+ * UserModel represents the data of a user as used by the various services
  */
 public class UserModel {
 
@@ -28,7 +28,26 @@ public class UserModel {
 
     }
 
-    public String getid() {
+    public UserModel(String uid, String email, Map<String, Object> claims) {
+        this.id = uid;
+        this.email = email;
+        this.customClaims = claims;
+	}
+
+	public UserModel(String uid, Map<String, Object> customClaims, String providerId) {
+        this.id = uid;
+        this.provider = providerId;
+        this.customClaims = customClaims;
+	}
+
+	public UserModel(String uid, String email, Map<String, Object> customClaims, String providerId) {
+        this.id = uid;
+        this.email = email;
+        this.provider = providerId;
+        this.customClaims = customClaims;
+	}
+
+	public String getid() {
         return id;
     }
 

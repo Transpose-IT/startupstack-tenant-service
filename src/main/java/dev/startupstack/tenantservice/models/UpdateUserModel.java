@@ -8,7 +8,7 @@ import java.util.Map;
 import javax.validation.constraints.*;
 
 /**
- * UpdateUserDTO
+ * UpdateUser represents the data needed to update a user
  */
 public class UpdateUserModel {
 
@@ -21,7 +21,7 @@ public class UpdateUserModel {
 
     private String password;
 
-    @NotBlank(message="role may not be empty")
+    @SuppressWarnings("unused")
     private String role;
 
     private Map<String, Object> customClaims = new HashMap<>();

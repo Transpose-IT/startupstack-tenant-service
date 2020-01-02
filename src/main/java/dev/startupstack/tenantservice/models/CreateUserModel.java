@@ -9,7 +9,7 @@ import java.util.Map;
 import javax.validation.constraints.*;
 
 /**
- * ListUsers
+ * CreateUserModel represents the data needed to create a user
  */
 public class CreateUserModel {
 
