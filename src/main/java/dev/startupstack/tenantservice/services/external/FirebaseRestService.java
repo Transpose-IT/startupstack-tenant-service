@@ -28,6 +28,9 @@ public class FirebaseRestService {
 
     private static final Logger LOG = Logger.getLogger(FirebaseRestService.class);
 
+    /**
+     * The REST API requires a web API key, which is different than a service account that the SDK uses.
+     */
     @ConfigProperty(name = "startupstack.tenantservice.firebase.webapikey")
     String webApiKey;
 
@@ -78,7 +81,7 @@ public class FirebaseRestService {
 
     /**
      * Perform the actual HTTP POST to the REST API. Takes a partial url and
-     * an @{link Entity} with the right mediaType that this REST endpoint expects.
+     * an {@link Entity} with the right mediaType that this REST endpoint expects.
      * Returns a JAX-RS response object
      * 
      * @param preparedEntity An Entity ecoded with the right MediaType

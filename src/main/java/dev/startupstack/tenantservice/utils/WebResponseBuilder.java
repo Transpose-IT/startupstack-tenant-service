@@ -9,15 +9,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.startupstack.tenantservice.models.WebResponseModel;
 
 /**
- * WebResponseBuilder
+ * A helper class that can take regular strings and maps it to a valid
+ * {@link WebResponseModel} so it can be returned as JSON.
  */
 public class WebResponseBuilder {
     private static ObjectMapper mapper = new ObjectMapper();
 
     public static Response build(String message, int code) {
         try {
-            return Response.status(code).entity(mapper.writeValueAsString(new WebResponseModel(message, code)))
-                    .build();
+            return Response.status(code).entity(mapper.writeValueAsString(new WebResponseModel(message, code))).build();
         } catch (JsonProcessingException jpe) {
             throw new WebApplicationException(jpe.getMessage(), jpe);
         }
@@ -31,7 +31,5 @@ public class WebResponseBuilder {
             throw new WebApplicationException(jpe.getMessage(), jpe);
         }
     }
-
-
 
 }

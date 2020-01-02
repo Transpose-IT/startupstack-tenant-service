@@ -17,10 +17,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import dev.startupstack.tenantservice.models.CreateUserModel;
-import dev.startupstack.tenantservice.models.ModelValidator;
+import dev.startupstack.tenantservice.utils.ModelValidator;
 import dev.startupstack.tenantservice.models.UpdateUserModel;
 import dev.startupstack.tenantservice.services.UserService;
 
+/**
+ * REST entrypoint (resource) for user management
+ */
 @ApplicationScoped
 @Path(API_URL_PREFIX + "/user")
 public class UserResource {

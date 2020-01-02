@@ -6,7 +6,7 @@ import javax.ws.rs.core.Response;
 import dev.startupstack.tenantservice.models.LoginModel;
 
 /**
- * SessionService
+ * SessionService handles all session related actions, such as logging in and logging out a user in a remote IDP
  */
 @Dependent
 public interface SessionService {

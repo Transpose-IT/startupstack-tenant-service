@@ -66,7 +66,8 @@ public class FirebaseSDKService {
     /**
      * Returns a decrypted Firebase token which can be used by the caller to
      * validate the contents of the token, e.g. if the user has a certain role or
-     * which tenant a user is a part of.
+     * which tenant a user is a part of. Also checks on the Firebase server side to
+     * determine if the token has expired.
      * 
      * @param accessToken A valid Firebase-issued accesstoken
      * @return FirebaseToken A decrypted Firebase Token
@@ -104,6 +105,10 @@ public class FirebaseSDKService {
         }
     }
 
+    /**
+     * Initialize the class by loading the service account file. The SDK is mostly
+     * static so you need to initialize it only once.
+     */
     @PostConstruct
     void initialize() {
         if (FirebaseApp.getApps().isEmpty()) {

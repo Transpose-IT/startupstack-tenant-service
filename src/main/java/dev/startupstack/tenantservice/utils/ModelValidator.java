@@ -1,4 +1,4 @@
-package dev.startupstack.tenantservice.models;
+package dev.startupstack.tenantservice.utils;
 
 import java.util.Iterator;
 import java.util.LinkedList;

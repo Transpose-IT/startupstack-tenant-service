@@ -7,7 +7,10 @@ import dev.startupstack.tenantservice.models.CreateUserModel;
 import dev.startupstack.tenantservice.models.UpdateUserModel;
 
 /**
- * UserService
+ * The UserService handles everything regarding users. Based on the
+ * implementation it can also recruit the {@link UserEntityService} to store
+ * data in the database as a persistent cache, in addition to storing it in the
+ * IDP.
  */
 
 @Dependent

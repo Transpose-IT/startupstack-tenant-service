@@ -3,7 +3,7 @@ package dev.startupstack.tenantservice.models;
 import javax.validation.constraints.*;
 
 /**
- * ListUsers
+ * CreateTenantModel represents the data needed to create a tenant
  */
 public class CreateTenantModel {
 

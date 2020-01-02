@@ -3,10 +3,8 @@ package dev.startupstack.tenantservice;
 import javax.enterprise.context.ApplicationScoped;
 
 /**
- * TenantService
+ * Main class is unused
  */
-
-
  
 @ApplicationScoped
 public class TenantService {

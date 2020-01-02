@@ -3,7 +3,7 @@ package dev.startupstack.tenantservice.models;
 import java.util.LinkedList;
 
 /**
- * ResponseEntity
+ * WebResponseModel that represents a response sent back to the client
  */
 public class WebResponseModel {
 

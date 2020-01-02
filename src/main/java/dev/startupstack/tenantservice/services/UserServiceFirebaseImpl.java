@@ -35,7 +35,7 @@ import dev.startupstack.tenantservice.services.external.FirebaseSDKService;
 import dev.startupstack.tenantservice.utils.WebResponseBuilder;
 
 /**
- * UserServiceFirebaseImpl
+ * The UserServiceFirebaseImpl implements the {@link UserService} in Firebase.
  */
 
 @Dependent
@@ -46,22 +46,24 @@ public class UserServiceFirebaseImpl implements UserService {
     FirebaseSDKService firebaseSDKService;
 
     @Inject
-    EntityService entityService;
+    UserEntityService entityService;
 
     @Inject
     TenantService tenantService;
 
+    /**
+     * Gets a user from Firebase with the given ID.
+     * 
+     * @param id A user ID
+     * @return Response A Response constructed with {@link WebResponseBuilder}
+     */
+    // TODO: Add support for querying the DB instead of firebase
     @Override
     public Response getUser(String id) {
         try {
             LOG.infof("[%s] Getting user info from Firebase ...", id);
             UserRecord user = FirebaseAuth.getInstance().getUser(id);
-            UserModel userModel = new UserModel();
-
-            userModel.setid(user.getUid());
-            userModel.setCustomClaims(user.getCustomClaims());
-            userModel.setProvider(user.getProviderId());
-
+            UserModel userModel = new UserModel(user.getUid(), user.getCustomClaims(), user.getProviderId());
             LOG.infof("[%s] Getting user info: OK", id);
             return WebResponseBuilder.build(null, Status.OK.getStatusCode(), userModel);
 
@@ -75,6 +77,12 @@ public class UserServiceFirebaseImpl implements UserService {
         }
     }
 
+    /**
+     * Returns a list of all users in Firebase
+     * 
+     * @return Response A Response constructed with {@link WebResponseBuilder}
+     */
+    // TODO: Add support for querying the DB instead of firebase
     @Override
     public Response listUsers() {
         List<UserModel> userJSONList = new ArrayList<>();
@@ -84,14 +92,8 @@ public class UserServiceFirebaseImpl implements UserService {
             for (Iterator<ExportedUserRecord> iterator = FirebaseAuth.getInstance().listUsers(null).getValues()
                     .iterator(); iterator.hasNext();) {
                 ExportedUserRecord user = iterator.next();
-                UserModel userModel = new UserModel();
-
-                userModel.setEmail(user.getEmail());
-                userModel.setid(user.getUid());
-                userModel.setCustomClaims(user.getCustomClaims());
-                userModel.setProvider(user.getProviderId());
-
-                userJSONList.add(userModel);
+                userJSONList.add(
+                        new UserModel(user.getUid(), user.getEmail(), user.getCustomClaims(), user.getProviderId()));
             }
             LOG.info("Listing all users: OK ");
             return WebResponseBuilder.build(null, Status.OK.getStatusCode(), userJSONList);
@@ -101,8 +103,19 @@ public class UserServiceFirebaseImpl implements UserService {
         }
     }
 
+    /**
+     * Creates a new user based on the {@link CreateUserModel}. Will create this
+     * both in Firebase and the EntityService. If one of the two fails, we will bail
+     * out. If database creation fails but Firebase succeeds, the user gets removed
+     * from Firebase again.
+     * 
+     * @param user a valid {@link CreateUserModel}
+     * @return Response A Response constructed with {@link WebResponseBuilder}
+     * @throws WebApplicationException A standard exception that will be caught by
+     *                                 the ErrorMapper to be returned as JSON.
+     */
     @Override
-    public Response createUser(CreateUserModel user) {
+    public Response createUser(CreateUserModel user) throws WebApplicationException {
         LOG.info("Creating user ...");
         if (entityService.existingUser(user.getEmail())) {
             LOG.info("user creation: FAILED - User already exists");
@@ -114,10 +127,11 @@ public class UserServiceFirebaseImpl implements UserService {
             return WebResponseBuilder.build("tenant_id not found", Status.FORBIDDEN.getStatusCode());
         }
 
+        String id = UUID.randomUUID().toString();
         try {
             CreateRequest request = new CreateRequest();
             request.setEmail(user.getEmail());
-            request.setUid(UUID.randomUUID().toString());
+            request.setUid(id);
             request.setPassword(user.getPassword());
             UserRecord createdUser = FirebaseAuth.getInstance().createUser(request);
             FirebaseAuth.getInstance().setCustomUserClaims(createdUser.getUid(), user.getCustomClaims());
@@ -130,14 +144,33 @@ public class UserServiceFirebaseImpl implements UserService {
         } catch (FirebaseAuthException exception) {
             LOG.errorf("user creation: FAILED - %s", exception.getMessage());
             throw new WebApplicationException(exception.getMessage(), exception);
+        } catch (WebApplicationException wae) {
+            LOG.warnf("Error creating user in DB, removing user from Firebase");
+            try {
+                FirebaseAuth.getInstance().deleteUser(id);
+            } catch (FirebaseAuthException exception) {
+                LOG.error("Unable to delete fresh user from Firebase, something is going seriously wrong!");
+                throw new WebApplicationException(exception.getMessage(), exception);
+            }
+            throw new WebApplicationException(wae.getMessage(), wae);
         }
     }
 
+    /**
+     * Deletes a user on the given ID. Deletes it from both the database and
+     * Firebase
+     * 
+     * @param id A user ID
+     * @return Response A Response constructed with {@link WebResponseBuilder}
+     * @throws WebApplicationException A standard exception that will be caught by
+     *                                 the ErrorMapper to be returned as JSON.
+     */
     @Override
-    public Response deleteUser(String id) {
+    public Response deleteUser(String id) throws WebApplicationException {
         LOG.infof("[%s] Deleting user ...", id);
         try {
             FirebaseAuth.getInstance().deleteUser(id);
+            entityService.deleteUser(id);
             LOG.infof("[%s] User deletion: OK");
             return WebResponseBuilder.build(null, Status.NO_CONTENT.getStatusCode());
         } catch (FirebaseAuthException exception) {
@@ -145,8 +178,18 @@ public class UserServiceFirebaseImpl implements UserService {
         }
     }
 
+    /**
+     * Updates a user based on the {@link UpdateUserModel}. It will check which
+     * fields are set and updates the fields on both the database and Firebase
+     * respectively.
+     * 
+     * @param user A {@link UpdateUserModel} model
+     * @return Response A Response constructed with {@link WebResponseBuilder}
+     * @throws WebApplicationException A standard exception that will be caught by
+     *                                 the ErrorMapper to be returned as JSON.
+     */
     @Override
-    public Response updateUser(UpdateUserModel user) {
+    public Response updateUser(UpdateUserModel user) throws WebApplicationException {
         LOG.infof("[%s] Updating user ...", user.getid());
         UpdateRequest request = new UpdateRequest(user.getid());
 
@@ -161,8 +204,7 @@ public class UserServiceFirebaseImpl implements UserService {
         if (user.getRole() != null) {
             LOG.debug("changing role");
             try {
-                Map<String, Object> currentClaims = FirebaseAuth.getInstance().getUser(user.getid())
-                        .getCustomClaims();
+                Map<String, Object> currentClaims = FirebaseAuth.getInstance().getUser(user.getid()).getCustomClaims();
 
                 Map<String, Object> modifiedClaims = new HashMap<>();
                 modifiedClaims.put(CLAIM_NAME_TENANT_ID, currentClaims.get(CLAIM_NAME_TENANT_ID));
@@ -170,19 +212,16 @@ public class UserServiceFirebaseImpl implements UserService {
 
                 request.setCustomClaims(modifiedClaims);
             } catch (FirebaseAuthException exception) {
-                LOG.errorf("[%s] Updating user: FAILED - changing role failed: %s", user.getid(), exception.getMessage());
+                LOG.errorf("[%s] Updating user: FAILED - changing role failed: %s", user.getid(),
+                        exception.getMessage());
                 throw new WebApplicationException(exception.getMessage(), exception);
             }
         }
         try {
             UserRecord updatedUser = FirebaseAuth.getInstance().updateUser(request);
+            entityService.updateUser(new UserEntity(updatedUser.getUid(), updatedUser.getEmail(),
+                    updatedUser.getCustomClaims().get(CLAIM_NAME_ROLE).toString()));
 
-            UserEntity userEntity = new UserEntity();
-            userEntity.setid(updatedUser.getUid());
-            userEntity.setRole(updatedUser.getCustomClaims().get(CLAIM_NAME_ROLE).toString());
-            userEntity.setEmail(updatedUser.getEmail());
-            
-            entityService.updateUser(userEntity);
             LOG.infof("[%s] Updating user: OK", updatedUser.getUid());
             return WebResponseBuilder.build("user updated", Status.ACCEPTED.getStatusCode(), updatedUser);
         } catch (FirebaseAuthException exception) {
