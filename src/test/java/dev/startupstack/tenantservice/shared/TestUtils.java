@@ -1,10 +1,6 @@
 package dev.startupstack.tenantservice.shared;
 
-import static dev.startupstack.tenantservice.utils.Constants.API_URL_PREFIX;
-import static dev.startupstack.tenantservice.shared.TestConstants.testTenantID;
-import static dev.startupstack.tenantservice.shared.TestConstants.testEmail;
-import static dev.startupstack.tenantservice.shared.TestConstants.testPassword;
-import static dev.startupstack.tenantservice.shared.TestConstants.testDefaultRole;
+import static dev.startupstack.tenantservice.shared.TestConstants.*;
 
 import static io.restassured.RestAssured.*;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -24,6 +20,7 @@ import dev.startupstack.tenantservice.models.LoginModel;
 import dev.startupstack.tenantservice.models.firebase.LoginResponse;
 import io.restassured.http.ContentType;
 import io.restassured.mapper.ObjectMapperType;
+import io.restassured.response.Response;
 import io.restassured.response.ResponseBody;
 
 /**
@@ -32,18 +29,17 @@ import io.restassured.response.ResponseBody;
 public class TestUtils {
 
     private static final Logger LOG = Logger.getLogger(TestUtils.class);
-    private static final String userUrl = API_URL_PREFIX + "/" + "user";
-    private static final String loginUrl = API_URL_PREFIX + "/" + "session/login";
 
     public static void createTempUser(String email)  {
         CreateUserModel user = new CreateUserModel(testTenantID, testDefaultRole, email, testPassword);
-        given().body(user).contentType(ContentType.JSON).when().post(userUrl);
+        Response response = given().baseUri("http://localhost:8081").body(user).contentType(ContentType.JSON).when().post(userUrl);
+        if (response.getStatusCode() > 204) {
+            LOG.errorf("Error creating temp user: %s", response.getBody().prettyPeek());
+            fail("Temp user creation failed");
+        }
     }
 
-    public static LoginResponse createTempUserAndLogin(String email) {
-        CreateUserModel user = new CreateUserModel(testTenantID, testDefaultRole, email, testPassword);
-        given().body(user).contentType(ContentType.JSON).when().post(userUrl);
-
+    public static LoginResponse LoginTempUser(String email) {
         LoginModel loginModel = new LoginModel();
         loginModel.setEmail(email);
         loginModel.setPassword(testPassword);
@@ -81,5 +77,4 @@ public class TestUtils {
         fail("Couldn't find id of created user");
         return null;
     }
-    
 }

@@ -12,14 +12,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.annotation.PreDestroy;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.ExportedUserRecord;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
@@ -227,10 +225,5 @@ public class UserServiceFirebaseImpl implements UserService {
         } catch (FirebaseAuthException exception) {
             throw new WebApplicationException(exception.getMessage(), exception);
         }
-    }
-
-    @PreDestroy
-    void predestroy() {
-        FirebaseApp.getInstance().delete();
     }
 }

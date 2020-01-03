@@ -11,7 +11,6 @@ import static dev.startupstack.tenantservice.shared.TestConstants.testDefaultRol
 
 import static dev.startupstack.tenantservice.shared.TestUtils.*;
 
-
 import java.io.FileInputStream;
 import java.io.IOException;
 
@@ -26,6 +25,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.UserRecord.CreateRequest;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -51,6 +51,8 @@ public class UserResourceFirebaseTest {
 
     final String baseUrl = API_URL_PREFIX + "/" + "user";
 
+    private static final Logger LOG = Logger.getLogger(UserResourceFirebaseTest.class);
+
     @Inject
     @ConfigProperty(name = "startupstack.tenantservice.firebase.keyfile")
     String serviceAccountFile;
@@ -72,7 +74,8 @@ public class UserResourceFirebaseTest {
     }
 
     @Test
-    public void testThatUserCanBeCreated() throws Exception {
+    void testThatUserCanBeCreated() throws Exception {
+        LOG.infof("Running test: %s", new Object() {}.getClass().getEnclosingMethod().getName());
         CreateUserModel testUser = new CreateUserModel(testTenantID, testDefaultRole, testEmail, testPassword);
         given().body(testUser).contentType(ContentType.JSON)
             .when().post(baseUrl)
@@ -83,7 +86,8 @@ public class UserResourceFirebaseTest {
                 .body("responseObject.customClaims.role", equalTo(testDefaultRole));
     }
     @Test
-    public void testUserCreateModelValidation() throws Exception {
+    void testUserCreateModelValidation() throws Exception {
+        LOG.infof("Running test: %s", new Object() {}.getClass().getEnclosingMethod().getName());
         CreateUserModel testUser = new CreateUserModel();
 
         given().body(testUser).contentType(ContentType.JSON)
@@ -119,7 +123,8 @@ public class UserResourceFirebaseTest {
     }
 
     @Test
-    public void testThatAllUsersCanBeRetrieved() throws Exception {
+    void testThatAllUsersCanBeRetrieved() throws Exception {
+        LOG.infof("Running test: %s", new Object() {}.getClass().getEnclosingMethod().getName());
         createTempUser("test1@fake.net");
         createTempUser("test2@fake.net");
 
@@ -136,7 +141,8 @@ public class UserResourceFirebaseTest {
     }
 
     @Test
-    public void OnCreateTestThatUserIsNotCreatedWhenEmailAlreadyExists() throws Exception {
+    void OnCreateTestThatUserIsNotCreatedWhenEmailAlreadyExists() throws Exception {
+        LOG.infof("Running test: %s", new Object() {}.getClass().getEnclosingMethod().getName());
         String email = "duplicate@fake.net";
         createTempUser(email);
 
@@ -153,7 +159,8 @@ public class UserResourceFirebaseTest {
     }
 
     @Test
-    public void onCreateTestThatFirebaseThrowsExceptionOnInvalidInput() throws Exception {
+    void onCreateTestThatFirebaseThrowsExceptionOnInvalidInput() throws Exception {
+        LOG.infof("Running test: %s", new Object() {}.getClass().getEnclosingMethod().getName());
         String email = "invalid-email";
         CreateUserModel testUser = new CreateUserModel(testTenantID, testDefaultRole, email, "x");
 
@@ -161,7 +168,8 @@ public class UserResourceFirebaseTest {
     }
 
     @Test
-    public void testThatFirebaseThrowsExceptionOnDuplicateInput() throws Exception {
+    void testThatFirebaseThrowsExceptionOnDuplicateInput() throws Exception {
+        LOG.infof("Running test: %s", new Object() {}.getClass().getEnclosingMethod().getName());
         String email = "duplicate-user-service@fake.net";
         CreateUserModel testUser = new CreateUserModel(testTenantID, testDefaultRole, email, testPassword);
 
@@ -176,7 +184,8 @@ public class UserResourceFirebaseTest {
     }
 
     @Test
-    public void onCreateTestThatUserCreationFailsWhenTenantIsInvalid() throws Exception {
+    void onCreateTestThatUserCreationFailsWhenTenantIsInvalid() throws Exception {
+        LOG.infof("Running test: %s", new Object() {}.getClass().getEnclosingMethod().getName());
         String email = "notenant@fake.net";
         CreateUserModel testUser = new CreateUserModel("invalidtenant", testDefaultRole, email, testPassword);
         try {
@@ -190,7 +199,8 @@ public class UserResourceFirebaseTest {
     }
     
     @Test
-    public void testThatUsercanBeDeleted() throws Exception {
+    void testThatUsercanBeDeleted() throws Exception {
+        LOG.infof("Running test: %s", new Object() {}.getClass().getEnclosingMethod().getName());
         String email = "delete@fake.net";
         createTempUser(email);
 
@@ -209,12 +219,14 @@ public class UserResourceFirebaseTest {
     }
 
     @Test
-    public void onDeleteTestThatAnInvalidDeleteCallThrowsException() {
+    void onDeleteTestThatAnInvalidDeleteCallThrowsException() {
+        LOG.infof("Running test: %s", new Object() {}.getClass().getEnclosingMethod().getName());
         Assertions.assertThrows(WebApplicationException.class, () -> userService.deleteUser("invalid-id"));
     }
 
     @Test
-    public void testThatUsercanBeUpdated() throws Exception {
+    void testThatUsercanBeUpdated() throws Exception {
+        LOG.infof("Running test: %s", new Object() {}.getClass().getEnclosingMethod().getName());
         String email = "preupdate@fake.net";
         createTempUser(email);
 
@@ -253,7 +265,8 @@ public class UserResourceFirebaseTest {
     }
 
     @Test
-    public void onUpdateTestThatAnEmptyUpdateModelReturnsABadRequest() throws Exception {
+    void onUpdateTestThatAnEmptyUpdateModelReturnsABadRequest() throws Exception {
+        LOG.infof("Running test: %s", new Object() {}.getClass().getEnclosingMethod().getName());
         UpdateUserModel updateUser = new UpdateUserModel();
         
         try {
@@ -270,7 +283,8 @@ public class UserResourceFirebaseTest {
     }
 
     @Test
-    public void onUpdateTestThatAnInvalidIDReturnsAnException() throws Exception {
+    void onUpdateTestThatAnInvalidIDReturnsAnException() throws Exception {
+        LOG.infof("Running test: %s", new Object() {}.getClass().getEnclosingMethod().getName());
         UpdateUserModel updateUser = new UpdateUserModel();
         updateUser.setid("invalid-id");
         Assertions.assertThrows(WebApplicationException.class, () -> userService.updateUser(updateUser));
@@ -278,7 +292,8 @@ public class UserResourceFirebaseTest {
 
     
     @Test
-    public void onGetTestThatAnUnknownUserReturnsAnError() {
+    void onGetTestThatAnUnknownUserReturnsAnError() {
+        LOG.infof("Running test: %s", new Object() {}.getClass().getEnclosingMethod().getName());
         String id = "fake-id";
         
         given()
