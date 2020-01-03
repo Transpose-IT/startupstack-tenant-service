@@ -24,6 +24,7 @@ public class UserEntity {
     @JoinColumn
     private TenantEntity tenant;
 
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
 
     private String role;
@@ -41,7 +42,10 @@ public class UserEntity {
         this.role = role;
     }
 
-    public UserEntity(String uid, String email2, String string) {
+    public UserEntity(String id, String email, String role) {
+        this.id = id;
+        this.email = email;
+        this.role = role;
     }
 
     public String getId() {

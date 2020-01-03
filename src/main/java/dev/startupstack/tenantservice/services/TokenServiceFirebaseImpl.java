@@ -92,6 +92,7 @@ public class TokenServiceFirebaseImpl implements TokenService {
         Optional<FirebaseAuthException> result = firebaseSDKService.verifyToken(accessToken);
 
         if (result.isPresent()) {
+            LOG.info(result);
             FirebaseAuthException firebaseResult = result.get();
             if (firebaseResult.getErrorCode() == FIREBASE_ERROR_INVALID_CREDENTIAL) {
                 LOG.infof("[%s] Validating Token: PENDING - Token expired, attempting to refresh it", id);

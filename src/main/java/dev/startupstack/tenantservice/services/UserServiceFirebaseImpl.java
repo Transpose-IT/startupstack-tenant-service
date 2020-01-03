@@ -3,6 +3,8 @@ package dev.startupstack.tenantservice.services;
 import static dev.startupstack.tenantservice.utils.Constants.CLAIM_NAME_ROLE;
 import static dev.startupstack.tenantservice.utils.Constants.CLAIM_NAME_TENANT_ID;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -63,7 +65,7 @@ public class UserServiceFirebaseImpl implements UserService {
         try {
             LOG.infof("[%s] Getting user info from Firebase ...", id);
             UserRecord user = FirebaseAuth.getInstance().getUser(id);
-            UserModel userModel = new UserModel(user.getUid(), user.getCustomClaims(), user.getProviderId());
+            UserModel userModel = new UserModel(user.getUid(), user.getCustomClaims(), user.getProviderId(), user.getEmail());
             LOG.infof("[%s] Getting user info: OK", id);
             return WebResponseBuilder.build(null, Status.OK.getStatusCode(), userModel);
 
@@ -114,6 +116,7 @@ public class UserServiceFirebaseImpl implements UserService {
      * @throws WebApplicationException A standard exception that will be caught by
      *                                 the ErrorMapper to be returned as JSON.
      */
+    // TODO: Add constraints for role names
     @Override
     public Response createUser(CreateUserModel user) throws WebApplicationException {
         LOG.info("Creating user ...");
@@ -141,19 +144,16 @@ public class UserServiceFirebaseImpl implements UserService {
 
             LOG.infof("user creation: OK - %s", createdUser.getUid());
             return WebResponseBuilder.build("user created", Status.CREATED.getStatusCode(), responseObject);
-        } catch (FirebaseAuthException exception) {
-            LOG.errorf("user creation: FAILED - %s", exception.getMessage());
-            throw new WebApplicationException(exception.getMessage(), exception);
-        } catch (WebApplicationException wae) {
-            LOG.warnf("Error creating user in DB, removing user from Firebase");
-            try {
-                FirebaseAuth.getInstance().deleteUser(id);
-            } catch (FirebaseAuthException exception) {
-                LOG.error("Unable to delete fresh user from Firebase, something is going seriously wrong!");
-                throw new WebApplicationException(exception.getMessage(), exception);
+        } catch (FirebaseAuthException | IllegalArgumentException exception) {
+            if (exception.getMessage() == null) {
+                StringWriter sw = new StringWriter();
+                exception.printStackTrace(new PrintWriter(sw));
+                LOG.errorf("user creation: FAILED - %s", sw.toString());    
+            } else {
+                LOG.errorf("user creation: FAILED - %s", exception.getMessage());    
             }
-            throw new WebApplicationException(wae.getMessage(), wae);
-        }
+            throw new WebApplicationException(exception.getMessage(), exception);
+        } 
     }
 
     /**
@@ -225,7 +225,7 @@ public class UserServiceFirebaseImpl implements UserService {
             LOG.infof("[%s] Updating user: OK", updatedUser.getUid());
             return WebResponseBuilder.build("user updated", Status.ACCEPTED.getStatusCode(), updatedUser);
         } catch (FirebaseAuthException exception) {
-            throw new WebApplicationException(exception.getMessage());
+            throw new WebApplicationException(exception.getMessage(), exception);
         }
     }
 

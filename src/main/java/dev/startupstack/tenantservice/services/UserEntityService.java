@@ -23,7 +23,7 @@ import dev.startupstack.tenantservice.models.CreateUserModel;
  * to get certain information.
  */
 @ApplicationScoped
-class UserEntityService {
+public class UserEntityService {
 
     private static final Logger LOG = Logger.getLogger(UserEntityService.class);
 
@@ -91,7 +91,7 @@ class UserEntityService {
      *                                 the ErrorMapper to be returned as JSON.
      */
     @Transactional
-    void createUser(CreateUserModel userModel, String id) throws WebApplicationException {
+    public void createUser(CreateUserModel userModel, String id) throws WebApplicationException {
         LOG.debugf("[%s] Creating new DB user ...", id);
         try {
             TenantEntity tenant = entityManager.find(TenantEntity.class, userModel.getTenantID());
