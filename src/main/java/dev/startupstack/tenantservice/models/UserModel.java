@@ -34,10 +34,11 @@ public class UserModel {
         this.customClaims = claims;
 	}
 
-	public UserModel(String uid, Map<String, Object> customClaims, String providerId) {
+	public UserModel(String uid, Map<String, Object> customClaims, String providerId, String email) {
         this.id = uid;
         this.provider = providerId;
         this.customClaims = customClaims;
+        this.email = email;
 	}
 
 	public UserModel(String uid, String email, Map<String, Object> customClaims, String providerId) {

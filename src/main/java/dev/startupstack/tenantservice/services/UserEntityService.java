@@ -23,7 +23,7 @@ import dev.startupstack.tenantservice.models.CreateUserModel;
  * to get certain information.
  */
 @ApplicationScoped
-class UserEntityService {
+public class UserEntityService {
 
     private static final Logger LOG = Logger.getLogger(UserEntityService.class);
 
@@ -37,7 +37,7 @@ class UserEntityService {
      * @param id The user ID
      * @return String A string representation of the refresh token
      */
-    String getRefreshToken(String id) {
+    public String getRefreshToken(String id) {
         LOG.debugf("[%s] Getting refresh token ...", id);
         try {
 
@@ -63,7 +63,7 @@ class UserEntityService {
      *                                 the ErrorMapper to be returned as JSON.
      */
     @Transactional
-    void updateRefreshToken(String id, String refresh_token) throws WebApplicationException {
+    public void updateRefreshToken(String id, String refresh_token) throws WebApplicationException {
         LOG.debugf("[%s] Updating refresh token ...", id);
         try {
             UserEntity user = entityManager.find(UserEntity.class, id);
@@ -91,7 +91,7 @@ class UserEntityService {
      *                                 the ErrorMapper to be returned as JSON.
      */
     @Transactional
-    void createUser(CreateUserModel userModel, String id) throws WebApplicationException {
+    public void createUser(CreateUserModel userModel, String id) throws WebApplicationException {
         LOG.debugf("[%s] Creating new DB user ...", id);
         try {
             TenantEntity tenant = entityManager.find(TenantEntity.class, userModel.getTenantID());

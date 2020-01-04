@@ -7,9 +7,12 @@ import java.util.Map;
 
 import javax.validation.constraints.*;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 /**
  * UpdateUser represents the data needed to update a user
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UpdateUserModel {
 
     @NotBlank(message="id may not be empty")
@@ -26,8 +29,10 @@ public class UpdateUserModel {
 
     private Map<String, Object> customClaims = new HashMap<>();
 
+    // Needed for Jackson so it doesn't NPE on non-existant keys in case the values
+    // don't come from the JSON request body
     public UpdateUserModel() {
-
+        customClaims.put(CLAIM_NAME_ROLE, "");
     }
 
     public String getid() {

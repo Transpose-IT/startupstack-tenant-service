@@ -24,6 +24,7 @@ public class UserEntity {
     @JoinColumn
     private TenantEntity tenant;
 
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
 
     private String role;
@@ -41,7 +42,10 @@ public class UserEntity {
         this.role = role;
     }
 
-    public UserEntity(String uid, String email2, String string) {
+    public UserEntity(String id, String email, String role) {
+        this.id = id;
+        this.email = email;
+        this.role = role;
     }
 
     public String getId() {
@@ -91,11 +95,4 @@ public class UserEntity {
     public void setEmail(String email) {
         this.email = email;
     }
-
-    @Override
-    public String toString() {
-        return "{" + " id='" + getid() + "'" + ", email='" + getEmail() + "'" + ", role='" + getRole() + "'"
-                + ", refresh_token='" + getRefresh_token() + "'" + "}";
-    }
-
 }
