@@ -8,30 +8,44 @@ import java.util.Map;
 
 import javax.validation.constraints.*;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 /**
  * CreateUserModel represents the data needed to create a user
  */
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CreateUserModel {
 
-    @NotBlank(message="email may not be empty")
+    @NotBlank(message = "email may not be empty")
     @Email
     private String email;
 
-    @NotBlank(message="password may not be empty")
-    @Size(min = 8, message="password must be at least 8 characters")
+    @NotBlank(message = "password may not be empty")
+    @Size(min = 8, message = "password must be at least 8 characters")
     private String password;
 
-    @NotBlank(message="tenant may not be empty")
+    @NotBlank(message = "tenant may not be empty")
     private String tenantID;
 
-    @NotBlank(message="role may not be empty")
+    @NotBlank(message = "role may not be empty")
     private String role;
 
     private Map<String, Object> customClaims = new HashMap<>();
 
-
+    // Needed for Jackson so it doesn't NPE on non-existant keys in case the values
+    // don't come from the JSON request body
     public CreateUserModel() {
+        customClaims.put(CLAIM_NAME_TENANT_ID, "");
+        customClaims.put(CLAIM_NAME_ROLE, "");
+    }
 
+    public CreateUserModel(String tenant, String role, String email, String password) {
+        this.email = email;
+        this.password = password;
+
+        setTenantID(tenant);
+        setRole(role);
     }
 
     public String getEmail() {

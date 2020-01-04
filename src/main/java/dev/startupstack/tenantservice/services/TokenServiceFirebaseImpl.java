@@ -72,12 +72,9 @@ public class TokenServiceFirebaseImpl implements TokenService {
 
     /**
      * This validates a given access Token with Firebase to see if its valid. If no
-     * exception is returned, the validation succeeded and the token is valid. If an
-     * exception is thrown, we will try the refresh the access token by using the
-     * stored refresh token in the database. If this succeeds, a
-     * {@link TokenResponse} is returned to the client. If refreshing the token
-     * fails we return a standard error. If Firebase returns anything other than a
-     * {@link FIREBASE_ERROR_INVALID_CREDENTIAL} error, we return a 400 Bad Request.
+     * exception is returned, the validation succeeded and the token is valid. If 
+     * Firebase returns anything other than a {@link FIREBASE_ERROR_INVALID_CREDENTIAL} 
+     * error, we return a 400 Bad Request.
      * 
      * @param accessToken A string of the access token
      * @param id          a user ID
@@ -92,28 +89,14 @@ public class TokenServiceFirebaseImpl implements TokenService {
         Optional<FirebaseAuthException> result = firebaseSDKService.verifyToken(accessToken);
 
         if (result.isPresent()) {
+            LOG.info(result);
             FirebaseAuthException firebaseResult = result.get();
             if (firebaseResult.getErrorCode() == FIREBASE_ERROR_INVALID_CREDENTIAL) {
-                LOG.infof("[%s] Validating Token: PENDING - Token expired, attempting to refresh it", id);
-                String refresh_token = entityService.getRefreshToken(id);
+                LOG.infof("[%s] Validating Token: FAILED - Token is invalid or expired", id);
 
-                if (refresh_token == null) {
-                    LOG.warnf("[%s] Validating Token: FAILED - no refresh token present in DB", id);
-                    return Response.status(Status.BAD_REQUEST.getStatusCode())
-                            .entity(new WebResponseModel("NO_REFRESHTOKEN", Status.BAD_REQUEST.getStatusCode()))
-                            .build();
-                }
-
-                Form form = new Form().param("grant_type", "refresh_token").param("refresh_token", refresh_token);
-                TokenResponse refreshedAccessToken = this.exchangeToken(form).readEntity(TokenResponse.class);
-
-                if (refreshedAccessToken.getError().isEmpty()) {
-                    LOG.infof("[%s] Validating Token: OK", id);
-                    return Response.ok().entity(refreshedAccessToken).build();
-                } else {
-                    LOG.warnf("[%s] Validating Token: FAILED - %s", id, refreshedAccessToken.getError().get("message"));
-                    return Response.status(Status.FORBIDDEN.getStatusCode()).entity(refreshedAccessToken).build();
-                }
+                int statusCode = Status.FORBIDDEN.getStatusCode();
+                return Response.status(statusCode).entity(new WebResponseModel(result.get().getMessage(), statusCode))
+                        .build();
             } else {
                 int statusCode = Status.BAD_REQUEST.getStatusCode();
                 LOG.warnf("[%s] Validating Token: FAILED - %s", id, result.get().getMessage());
