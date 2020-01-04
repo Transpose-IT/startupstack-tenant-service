@@ -16,11 +16,11 @@ The `application.properties` expects a couple of parameters to be set:
 
 |parameter|example|description|
 | --- | --- | --- |
-|`%(dev|test|prod).startupstack.tenantservice.firebase.keyfile`|`/home/user/firebase-adminsdk.json`|This holds the path to the service account json file created in the Firebase admin console. If you use multiple projects, you need to specify which json file belongs to which Quarkus profile, otherwise you can leave the profile portion off|
-|`%(dev|test|prod).startupstack.tenantservice.firebase.webapikey`|`APIKEY123-firebase`|The webapi key for the Firebase REST endpoint, also uses Quarkus profiles like the SDK keyfile|
+|`%(dev\|test\|prod).startupstack.tenantservice.firebase.keyfile`|`/home/user/firebase-adminsdk.json`|This holds the path to the service account json file created in the Firebase admin console. If you use multiple projects, you need to specify which json file belongs to which Quarkus profile, otherwise you can leave the profile portion off|
+|`%(dev\|test\|prod).startupstack.tenantservice.firebase.webapikey`|`APIKEY123-firebase`|The webapi key for the Firebase REST endpoint, also uses Quarkus profiles like the SDK keyfile|
 |`quarkus.datasource.url`|`jdbc:postgresql://localhost:5432/tenant_service`|
 |`quarkus.datasource.driver`|`org.postgresql.Driver`| |
 |`quarkus.datasource.username`|`username`| |
 |`quarkus.datasource.password`|`very-insecure`| |
-|`%(dev|test|prod).quarkus.hibernate-orm.database.generation`| `drop-and-create` or `none`| Specifies if Hibernate should drop and recreate the database on startup. Obviously set this to `none` on production.| 
-|`%(dev|test|prod)test.quarkus.hibernate-orm.sql-load-script`| `import-dev.sql`| A name of a file in the `resources` directory that is ran to pre-populate the database on startup|
+|`%(dev\|test\|prod).quarkus.hibernate-orm.database.generation`| `drop-and-create` or `none`| Specifies if Hibernate should drop and recreate the database on startup. Obviously set this to `none` on production.| 
+|`%(dev\|test\|prod)test.quarkus.hibernate-orm.sql-load-script`| `import-dev.sql`| A name of a file in the `resources` directory that is ran to pre-populate the database on startup|
