@@ -76,7 +76,7 @@ public class TenantServiceImpl implements TenantService {
             if (tenant != null) {
                 entityManager.remove(tenant);
                 LOG.infof("[%s] Deleting tenant: OK", id);
-                return Response.ok().entity(tenant).build();
+                return Response.status(Status.NO_CONTENT).build();
             } else {
                 LOG.warnf("[%s] Deleting tenant: FAILED - tenant not found", id);
                 return Response.status(Status.FORBIDDEN).entity(tenant).build();
@@ -106,7 +106,7 @@ public class TenantServiceImpl implements TenantService {
             tenant.setName(tenantModel.getName());
             entityManager.persist(tenant);
             LOG.infof("Creating tenant: OK - %s", tenant.getId());
-            return Response.ok().entity(tenant).build();
+            return Response.status(Status.CREATED).entity(tenant).build();
         } catch (IllegalArgumentException iae) {
             LOG.errorf("Creating tenant: FAILED - %s", iae.getMessage());
             throw new WebApplicationException(iae.getMessage(), iae);

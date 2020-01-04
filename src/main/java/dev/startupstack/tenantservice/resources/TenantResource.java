@@ -52,7 +52,7 @@ public class TenantResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}")
-    public Response getUser(@NotBlank @PathParam("id") final String id) {
+    public Response getTenant(@NotBlank @PathParam("id") final String id) {
         return tenantService.getTenant(id);
     }
 

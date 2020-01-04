@@ -5,7 +5,6 @@ import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
 import static dev.startupstack.tenantservice.shared.TestUtils.*;
-import static dev.startupstack.tenantservice.shared.TestConstants.*;
 
 import java.io.FileInputStream;
 

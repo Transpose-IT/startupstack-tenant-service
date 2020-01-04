@@ -95,11 +95,4 @@ public class UserEntity {
     public void setEmail(String email) {
         this.email = email;
     }
-
-    @Override
-    public String toString() {
-        return "{" + " id='" + getid() + "'" + ", email='" + getEmail() + "'" + ", role='" + getRole() + "'"
-                + ", refresh_token='" + getRefresh_token() + "'" + "}";
-    }
-
 }

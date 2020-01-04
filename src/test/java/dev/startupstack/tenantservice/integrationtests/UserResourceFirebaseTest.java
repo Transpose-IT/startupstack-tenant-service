@@ -4,11 +4,7 @@ import static dev.startupstack.tenantservice.utils.Constants.API_URL_PREFIX;
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
-import static dev.startupstack.tenantservice.shared.TestConstants.testTenantID;
-import static dev.startupstack.tenantservice.shared.TestConstants.testEmail;
-import static dev.startupstack.tenantservice.shared.TestConstants.testPassword;
-import static dev.startupstack.tenantservice.shared.TestConstants.testDefaultRole;
-
+import static dev.startupstack.tenantservice.shared.TestConstants.*;
 import static dev.startupstack.tenantservice.shared.TestUtils.*;
 
 import java.io.FileInputStream;
